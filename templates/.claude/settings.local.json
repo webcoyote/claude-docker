@@ -1,0 +1,10 @@
+{
+  "mcp": {
+    "servers": {
+      "twilio": {
+        "command": "npx",
+        "args": ["@twilioalpha/mcp-server-twilio"]
+      }
+    }
+  }
+}
