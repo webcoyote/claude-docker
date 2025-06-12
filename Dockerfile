@@ -17,8 +17,11 @@ WORKDIR /app
 # Install Claude Code globally
 RUN npm install -g @anthropic-ai/claude-code
 
+# Ensure npm global bin is in PATH
+ENV PATH="/usr/local/bin:${PATH}"
+
 # Install Twilio MCP server
-RUN npm install -g @twilioalpha/mcp-server-twilio
+RUN npm install -g @twilio-alpha/mcp
 
 # Create directories for configuration
 RUN mkdir -p /app/config /app/.claude

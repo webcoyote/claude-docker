@@ -59,15 +59,21 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 ## Notes & Context
 - Repository: https://github.com/VishalJ99/claude-docker
 - Using --dangerously-skip-permissions flag for full autonomy
-- Twilio MCP server runs alongside Claude Code in container
+- Twilio MCP server runs via Claude's MCP config (not as separate process)
+- Uses @twilio-alpha/mcp package with API Key/Secret authentication
 - Container auto-removes on exit for clean state
 - Project directory mounted at /workspace
 - Need to research Claude dev container's init-firewall.sh implementation
 - Need to research their history persistence mechanism
+- **Fixed startup issues (Dec 2024):**
+  - Changed executable from `claude-code` to `claude` in startup.sh
+  - Fixed .env parsing to handle comments properly using `set -a`/`source`
+  - Added explicit PATH for npm global binaries
+  - Maintained separation: `claude-docker` (host) vs `claude` (container)
 
 ## Quick References
 - Install: `./scripts/install.sh`
-- Usage: `claude` (from any project directory)
+- Usage: `claude-docker` (from any project directory)
 - Config: `~/.claude-docker/.env`
 - Repo: https://github.com/VishalJ99/claude-docker
 - Claude dev container: https://github.com/anthropics/claude-code/tree/main/.devcontainer

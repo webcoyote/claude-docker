@@ -23,15 +23,20 @@ A Docker container setup for running Claude Code with full autonomous permission
    ```bash
    # Edit ~/.claude-docker/.env with your keys
    ANTHROPIC_API_KEY=your_anthropic_key
+   
+   # For Twilio MCP integration:
    TWILIO_ACCOUNT_SID=your_twilio_sid  
-   TWILIO_AUTH_TOKEN=your_twilio_token
+   TWILIO_API_KEY=your_twilio_api_key
+   TWILIO_API_SECRET=your_twilio_api_secret
    TWILIO_FROM_NUMBER=your_twilio_number
    TWILIO_TO_NUMBER=your_phone_number
    ```
+   
+   > **Note**: Twilio MCP requires API Key/Secret instead of Auth Token. Create API keys in your Twilio Console under Account → API keys & tokens.
 
 3. **Use from any project directory:**
    ```bash
-   claude
+   claude-docker
    ```
 
 ## Features
@@ -89,8 +94,8 @@ The setup creates `~/.claude-docker/` with:
 ## Requirements
 
 - Docker installed and running
-- Anthropic API key
-- (Optional) Twilio account for SMS notifications
+- Anthropic API key (or Claude subscription)
+- (Optional) Twilio account with API Key/Secret for SMS notifications
 
 ## Next Steps
 

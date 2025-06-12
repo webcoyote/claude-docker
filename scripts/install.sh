@@ -16,15 +16,15 @@ if [ ! -f "$HOME/.claude-docker/.env" ]; then
 fi
 
 # Add alias to .zshrc
-ALIAS_LINE="alias claude='$PROJECT_ROOT/scripts/claude-docker.sh'"
+ALIAS_LINE="alias claude-docker='$PROJECT_ROOT/scripts/claude-docker.sh'"
 
-if ! grep -q "alias claude=" "$HOME/.zshrc"; then
+if ! grep -q "alias claude-docker=" "$HOME/.zshrc"; then
     echo "" >> "$HOME/.zshrc"
     echo "# Claude Docker alias" >> "$HOME/.zshrc"
     echo "$ALIAS_LINE" >> "$HOME/.zshrc"
-    echo "✓ Added 'claude' alias to .zshrc"
+    echo "✓ Added 'claude-docker' alias to .zshrc"
 else
-    echo "✓ Claude alias already exists in .zshrc"
+    echo "✓ Claude-docker alias already exists in .zshrc"
 fi
 
 # Make scripts executable
@@ -35,6 +35,7 @@ echo ""
 echo "Installation complete! 🎉"
 echo ""
 echo "Next steps:"
-echo "1. Edit $HOME/.claude-docker/.env with your API keys"
+echo "1. (Optional) Edit $HOME/.claude-docker/.env with your API keys"
 echo "2. Run 'source ~/.zshrc' or start a new terminal"
-echo "3. Navigate to any project and run 'claude' to start"
+echo "3. Navigate to any project and run 'claude-docker' to start"
+echo "4. If no API key, Claude will prompt for interactive authentication"
