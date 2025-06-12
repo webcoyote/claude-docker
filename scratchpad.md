@@ -14,12 +14,19 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 - Full autonomous permissions with --dangerously-skip-permissions
 - Context persistence via scratchpad.md files
 - Complete documentation and examples
+- **✅ WORKING** - All startup issues resolved, Docker container launches Claude Code successfully
 
 ## Next Steps 🎯
 **Phase 2 - Security & Persistence Enhancements:**
 
-### 1. Network Security (High Priority)
-- Implement firewall to restrict network access
+### 1. Authentication Persistence (HIGH Priority)
+- Avoid repeated Claude account logins every session
+- Research how to persist Claude Code authentication tokens
+- Investigate mounting Claude authentication data from host
+- Study Anthropic's dev container auth persistence approach
+
+### 2. Network Security (High Priority)
+- Implement firewall to restrict network access (study Anthropic's dev container)
 - Whitelist only essential domains:
   - api.anthropic.com (Claude API)
   - api.twilio.com (SMS notifications)
@@ -28,13 +35,13 @@ Building a Docker container that runs Claude Code with full autonomous permissio
   - Common documentation sites (if needed)
 - Block all other outbound connections for security
 
-### 2. Shell History Persistence (Medium Priority)
+### 3. Shell History Persistence (Medium Priority)
 - Add persistent bash/zsh history between container sessions
 - Mount history file to host directory
 - Implement history management similar to Claude dev container
 - Ensure commands persist across sessions
 
-### 3. Additional Persistence Features (Medium Priority)
+### 4. Additional Persistence Features (Medium Priority)
 - Persistent npm cache for faster startups
 - Git configuration persistence
 - Custom shell aliases and environment
@@ -65,11 +72,12 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 - Project directory mounted at /workspace
 - Need to research Claude dev container's init-firewall.sh implementation
 - Need to research their history persistence mechanism
-- **Fixed startup issues (Dec 2024):**
+- **Fixed startup issues:**
   - Changed executable from `claude-code` to `claude` in startup.sh
   - Fixed .env parsing to handle comments properly using `set -a`/`source`
   - Added explicit PATH for npm global binaries
   - Maintained separation: `claude-docker` (host) vs `claude` (container)
+- **Current working state:** Container launches successfully, authentication required each session
 
 ## Quick References
 - Install: `./scripts/install.sh`
