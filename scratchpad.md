@@ -19,21 +19,62 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 ## Next Steps 🎯
 **Phase 2 - Security & Persistence Enhancements:**
 
-### 1. Authentication Persistence (HIGH Priority)
-- Avoid repeated Claude account logins every session
-- Research how to persist Claude Code authentication tokens
-- Investigate mounting Claude authentication data from host
-- Study Anthropic's dev container auth persistence approach
+### 1. Authentication Persistence (HIGH Priority) - CURRENT FOCUS
+**Problem:** Need to re-login to Claude Code every time container starts
 
-### 2. Network Security (High Priority)
-- Implement firewall to restrict network access (study Anthropic's dev container)
-- Whitelist only essential domains:
-  - api.anthropic.com (Claude API)
-  - api.twilio.com (SMS notifications)
-  - github.com, raw.githubusercontent.com (git operations)
-  - npm registry domains (package management)
-  - Common documentation sites (if needed)
-- Block all other outbound connections for security
+**Research Findings:**
+- Claude Code stores auth tokens in temporary locations that get cleared
+- Known issues: #1222 (persistent auth warnings), #1676 (logout after restart)
+- The devcontainer mounts `/home/node/.claude` for config persistence
+- But auth tokens are NOT persisted properly even in devcontainer
+
+**Implementation Plan:**
+1. **Mount Claude config directory from host:**
+   - Create persistent `~/.claude-docker/claude-config` on host
+   - Mount to container's `~/.config/claude` or appropriate location
+   - Preserve authentication tokens between sessions
+
+2. **Modify startup script to:**
+   - Check for existing auth tokens on container start
+   - Skip login prompt if valid tokens exist
+   - Handle token refresh if needed
+
+3. **Token storage investigation:**
+   - Find where Claude Code stores auth tokens (likely ~/.config/claude or similar)
+   - Ensure proper permissions on mounted directory
+   - Test token persistence across container restarts
+
+### 2. Network Security (High Priority) - PLANNED
+**Implementation based on devcontainer's init-firewall.sh:**
+
+**Key Components:**
+1. **Firewall Script Features:**
+   - Uses iptables with default DROP policy
+   - ipset for managing allowed IP ranges
+   - Dynamic IP resolution for allowed domains
+   - Verification of connectivity post-setup
+
+2. **Allowed Domains Configuration:**
+   ```yaml
+   allowed_domains:
+     - api.anthropic.com      # Claude API
+     - api.twilio.com         # SMS notifications
+     - github.com             # Git operations
+     - raw.githubusercontent.com
+     - registry.npmjs.org     # Package management
+     - pypi.org               # Python packages
+     
+   blocked_paths:           # File system restrictions
+     - /etc
+     - /root
+     - ~/.ssh
+   ```
+
+3. **User-Friendly Setup:**
+   - Simple YAML config file for rules
+   - Easy enable/disable of firewall
+   - Logging of blocked attempts
+   - Graceful degradation if firewall fails
 
 ### 3. Shell History Persistence (Medium Priority)
 - Add persistent bash/zsh history between container sessions
@@ -62,6 +103,7 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 - Simplified settings.json to only include MCP config (no redundant allowedTools)
 - **NEW:** Adding firewall for network security
 - **NEW:** Adding shell history persistence like Claude dev container
+- **NEW (2024-12-06):** Focus on auth persistence first before firewall implementation
 
 ## Notes & Context
 - Repository: https://github.com/VishalJ99/claude-docker
@@ -78,6 +120,10 @@ Building a Docker container that runs Claude Code with full autonomous permissio
   - Added explicit PATH for npm global binaries
   - Maintained separation: `claude-docker` (host) vs `claude` (container)
 - **Current working state:** Container launches successfully, authentication required each session
+- **Auth Persistence Research (2024-12-06):**
+  - Claude Code has known issues with auth persistence
+  - Tokens stored in temp locations that get cleared
+  - Need to find exact token storage location and persist it
 
 ## Quick References
 - Install: `./scripts/install.sh`

@@ -5,8 +5,9 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Create config directory
+# Create config directory and claude persistence directory
 mkdir -p "$HOME/.claude-docker/config"
+mkdir -p "$HOME/.claude-docker/claude-home"
 
 # Copy example env file if doesn't exist
 if [ ! -f "$HOME/.claude-docker/.env" ]; then

@@ -9,7 +9,12 @@ RUN apt-get update && apt-get install -y \
     curl \
     python3 \
     build-essential \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user
+RUN useradd -m -s /bin/bash claude-user && \
+    echo "claude-user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Create app directory
 WORKDIR /app
@@ -24,7 +29,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN npm install -g @twilio-alpha/mcp
 
 # Create directories for configuration
-RUN mkdir -p /app/config /app/.claude
+RUN mkdir -p /app/config /app/.claude /home/claude-user/.claude
 
 # Copy MCP configuration
 COPY config/mcp-config.json /app/config/
@@ -33,11 +38,18 @@ COPY config/mcp-config.json /app/config/
 COPY scripts/startup.sh /app/
 RUN chmod +x /app/startup.sh
 
+# Set proper ownership
+RUN chown -R claude-user:claude-user /app /home/claude-user
+
+# Switch to non-root user
+USER claude-user
+
 # Set working directory to mounted volume
 WORKDIR /workspace
 
 # Environment variables will be passed from host
 ENV NODE_ENV=production
+ENV HOME=/home/claude-user
 
 # Start both MCP server and Claude Code
 ENTRYPOINT ["/app/startup.sh"]

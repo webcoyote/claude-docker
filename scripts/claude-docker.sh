@@ -38,12 +38,16 @@ if ! docker images | grep -q "claude-docker"; then
     docker build -t claude-docker:latest "$PROJECT_ROOT"
 fi
 
+# Ensure the claude-home directory exists
+mkdir -p "$HOME/.claude-docker/claude-home"
+
 # Run Claude Code in Docker
 echo "Starting Claude Code in Docker..."
 docker run -it --rm \
     -v "$CURRENT_DIR:/workspace" \
     -v "$ENV_FILE:/app/.env:ro" \
     -v "$HOME/.claude-docker/config:/app/.claude:rw" \
+    -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
     --workdir /workspace \
     --name claude-docker-session \
     claude-docker:latest "$@"
