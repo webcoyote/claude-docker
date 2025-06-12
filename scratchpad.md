@@ -19,30 +19,32 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 ## Next Steps 🎯
 **Phase 2 - Security & Persistence Enhancements:**
 
-### 1. Authentication Persistence (HIGH Priority) - CURRENT FOCUS
+### 1. Authentication Persistence (HIGH Priority) - ✅ COMPLETED
 **Problem:** Need to re-login to Claude Code every time container starts
 
 **Research Findings:**
-- Claude Code stores auth tokens in temporary locations that get cleared
+- Claude Code stores auth tokens in `~/.claude/.credentials.json`
 - Known issues: #1222 (persistent auth warnings), #1676 (logout after restart)
 - The devcontainer mounts `/home/node/.claude` for config persistence
 - But auth tokens are NOT persisted properly even in devcontainer
 
-**Implementation Plan:**
-1. **Mount Claude config directory from host:**
-   - Create persistent `~/.claude-docker/claude-config` on host
-   - Mount to container's `~/.config/claude` or appropriate location
-   - Preserve authentication tokens between sessions
+**Implementation Completed:**
+1. **Created persistent directory structure:**
+   - Host: `~/.claude-docker/claude-home` 
+   - Container: `/home/claude-user/.claude`
+   - Mounted with read/write permissions
 
-2. **Modify startup script to:**
-   - Check for existing auth tokens on container start
-   - Skip login prompt if valid tokens exist
-   - Handle token refresh if needed
+2. **Updated Docker setup:**
+   - Created non-root user `claude-user` for better security
+   - Set proper ownership and permissions
+   - Added volume mount for Claude home directory
 
-3. **Token storage investigation:**
-   - Find where Claude Code stores auth tokens (likely ~/.config/claude or similar)
-   - Ensure proper permissions on mounted directory
-   - Test token persistence across container restarts
+3. **Enhanced startup script:**
+   - Checks for existing `.credentials.json` on startup
+   - Notifies user if auth exists or login needed
+   - Credentials persist across container restarts
+
+**Result:** Users now login once and authentication persists forever!
 
 ### 2. Network Security (High Priority) - PLANNED
 **Implementation based on devcontainer's init-firewall.sh:**
@@ -104,6 +106,7 @@ Building a Docker container that runs Claude Code with full autonomous permissio
 - **NEW:** Adding firewall for network security
 - **NEW:** Adding shell history persistence like Claude dev container
 - **NEW (2024-12-06):** Focus on auth persistence first before firewall implementation
+- **COMPLETED (2024-12-06):** Auth persistence via mounted ~/.claude directory
 
 ## Notes & Context
 - Repository: https://github.com/VishalJ99/claude-docker
