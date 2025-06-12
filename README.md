@@ -56,6 +56,11 @@ A Docker container setup for running Claude Code with full autonomous permission
 - Persistent across container sessions
 - Helps Claude remember project context
 
+### 🔑 Authentication Persistence
+- Login once, use forever - authentication tokens persist across sessions
+- No need to re-authenticate every time you start claude-docker
+- Credentials stored securely in `~/.claude-docker/claude-home`
+
 ### 🐳 Clean Environment
 - Each session runs in fresh Docker container
 - Container auto-removes on exit
@@ -88,8 +93,13 @@ claude-docker/
 
 The setup creates `~/.claude-docker/` with:
 - `.env` - API keys and configuration
-- `settings.json` - Claude Code settings with MCP
-- `CLAUDE.md` - Instructions for Claude behavior
+- `claude-home/` - Persistent Claude authentication and settings
+- `config/` - MCP server configuration
+
+Each project gets:
+- `.claude/settings.json` - Claude Code settings with MCP
+- `.claude/CLAUDE.md` - Instructions for Claude behavior
+- `scratchpad.md` - Project context file
 
 ## Requirements
 
@@ -99,10 +109,10 @@ The setup creates `~/.claude-docker/` with:
 
 ## Next Steps
 
-**Phase 2 - Security & Persistence Enhancements:**
+**Phase 2 - Security Enhancements:**
 - Network firewall to whitelist only essential domains
-- Persistent shell history between sessions
-- Additional persistence features (npm cache, git config)
+- Shell history persistence between sessions
+- Additional security features
 
 ## Repository
 
