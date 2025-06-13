@@ -24,18 +24,42 @@ if [ ! -d "$CURRENT_DIR/.claude" ]; then
     echo "✓ Claude configuration created"
 fi
 
-# Check if .env file exists in user's home claude-docker directory
-ENV_FILE="$HOME/.claude-docker/.env"
-if [ ! -f "$ENV_FILE" ]; then
+# Check if .env exists in claude-docker directory for building
+ENV_FILE="$PROJECT_ROOT/.env"
+if [ -f "$ENV_FILE" ]; then
+    echo "✓ Found .env file with credentials"
+else
     echo "⚠️  No .env file found at $ENV_FILE"
-    echo "Please create it with your API keys. See .env.example for reference."
-    exit 1
+    echo "   Twilio MCP features will be unavailable."
+    echo "   To enable: create .env in claude-docker directory with your credentials"
 fi
 
-# Build the Docker image if it doesn't exist
+# Check if we need to rebuild the image
+NEED_REBUILD=false
+
 if ! docker images | grep -q "claude-docker"; then
-    echo "Building Claude Docker image..."
-    docker build -t claude-docker:latest "$PROJECT_ROOT"
+    echo "Building Claude Docker image with your user permissions..."
+    NEED_REBUILD=true
+elif ! docker image inspect claude-docker:latest | grep -q "USER_UID.*$(id -u)" 2>/dev/null; then
+    echo "Rebuilding Claude Docker image to match your user permissions..."
+    NEED_REBUILD=true
+elif [ -f "$ENV_FILE" ]; then
+    # Check if .env is newer than the Docker image
+    IMAGE_CREATED=$(docker inspect -f '{{.Created}}' claude-docker:latest 2>/dev/null)
+    if [ -n "$IMAGE_CREATED" ]; then
+        IMAGE_TIMESTAMP=$(date -d "$IMAGE_CREATED" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${IMAGE_CREATED%%.*}" +%s 2>/dev/null)
+        ENV_TIMESTAMP=$(stat -c %Y "$ENV_FILE" 2>/dev/null || stat -f %m "$ENV_FILE" 2>/dev/null)
+        
+        if [ -n "$IMAGE_TIMESTAMP" ] && [ -n "$ENV_TIMESTAMP" ] && [ "$ENV_TIMESTAMP" -gt "$IMAGE_TIMESTAMP" ]; then
+            echo "⚠️  .env file has been updated since last build"
+            echo "   Rebuilding to include new credentials..."
+            NEED_REBUILD=true
+        fi
+    fi
+fi
+
+if [ "$NEED_REBUILD" = true ]; then
+    docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t claude-docker:latest "$PROJECT_ROOT"
 fi
 
 # Ensure the claude-home directory exists
@@ -45,8 +69,6 @@ mkdir -p "$HOME/.claude-docker/claude-home"
 echo "Starting Claude Code in Docker..."
 docker run -it --rm \
     -v "$CURRENT_DIR:/workspace" \
-    -v "$ENV_FILE:/app/.env:ro" \
-    -v "$HOME/.claude-docker/config:/app/.claude:rw" \
     -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
     --workdir /workspace \
     --name claude-docker-session \

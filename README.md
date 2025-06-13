@@ -12,19 +12,26 @@ A Docker container setup for running Claude Code with full autonomous permission
 
 ## Quick Start
 
-1. **Clone and install:**
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/VishalJ99/claude-docker.git
    cd claude-docker
-   ./scripts/install.sh
    ```
 
 2. **Configure your API keys:**
    ```bash
-   # Edit ~/.claude-docker/.env with your keys
+   # Copy the example file
+   cp .env.example .env
+   
+   # Edit .env with your credentials
+   nano .env
+   ```
+   
+   Add your credentials to the `.env` file:
+   ```bash
    ANTHROPIC_API_KEY=your_anthropic_key
    
-   # For Twilio MCP integration:
+   # For Twilio MCP integration (optional):
    TWILIO_ACCOUNT_SID=your_twilio_sid  
    TWILIO_API_KEY=your_twilio_api_key
    TWILIO_API_SECRET=your_twilio_api_secret
@@ -32,12 +39,59 @@ A Docker container setup for running Claude Code with full autonomous permission
    TWILIO_TO_NUMBER=your_phone_number
    ```
    
+   > **Important**: The `.env` file will be baked into the Docker image during build. This means:
+   > - Your credentials are embedded in the image
+   > - You can use the image from any directory without needing the .env file
+   > - Keep your image secure since it contains your credentials
+   
    > **Note**: Twilio MCP requires API Key/Secret instead of Auth Token. Create API keys in your Twilio Console under Account → API keys & tokens.
 
-3. **Use from any project directory:**
+3. **Build and install:**
+   ```bash
+   ./scripts/install.sh
+   ```
+   
+   This will:
+   - Build the Docker image with your credentials baked in
+   - Install the `claude-docker` command to your PATH
+
+4. **Use from any project directory:**
    ```bash
    claude-docker
    ```
+
+## Usage Patterns
+
+### One-Time Setup Per Project
+For the best experience, run `claude-docker` once per project and leave it running:
+
+1. **Start Claude Docker:**
+   ```bash
+   cd your-project
+   claude-docker
+   ```
+
+2. **Detach from the session (keep it running):**
+   - **Mac/Linux**: `Ctrl + P`, then `Ctrl + Q`
+   - Hold Control key, press P, then Q while still holding Control
+   - Container keeps running in background
+
+3. **Reattach when needed:**
+   ```bash
+   docker ps                           # Find your container ID
+   docker attach claude-docker-session # Reattach to the session
+   ```
+
+4. **Stop when done with project:**
+   ```bash
+   docker stop claude-docker-session
+   ```
+
+This workflow gives you:
+- ✅ Persistent authentication (login once per machine)
+- ✅ Persistent project context (one session per project)  
+- ✅ Perfect file permissions between host and container
+- ✅ No repeated setup or authentication
 
 ## Features
 
@@ -60,6 +114,7 @@ A Docker container setup for running Claude Code with full autonomous permission
 - Login once, use forever - authentication tokens persist across sessions
 - No need to re-authenticate every time you start claude-docker
 - Credentials stored securely in `~/.claude-docker/claude-home`
+- Automatic UID/GID mapping ensures perfect file permissions between host and container
 
 ### 🐳 Clean Environment
 - Each session runs in fresh Docker container
@@ -91,8 +146,12 @@ claude-docker/
 
 ## Configuration
 
-The setup creates `~/.claude-docker/` with:
-- `.env` - API keys and configuration
+During build, the `.env` file from the claude-docker directory is baked into the image:
+- Credentials are embedded at `/app/.env` inside the container
+- No need to manage .env files in each project
+- The image contains everything needed to run
+
+The setup creates `~/.claude-docker/` in your home directory with:
 - `claude-home/` - Persistent Claude authentication and settings
 - `config/` - MCP server configuration
 

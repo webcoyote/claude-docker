@@ -26,3 +26,5 @@ data/
 *.tmp
 *.temp
 ~*
+# Environment file with credentials
+.env
