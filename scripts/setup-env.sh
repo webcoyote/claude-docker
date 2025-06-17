@@ -24,8 +24,7 @@ echo
 
 # Collect Twilio credentials
 read -p "Enter your Twilio Account SID: " TWILIO_ACCOUNT_SID
-read -p "Enter your Twilio API Key: " TWILIO_API_KEY
-read -sp "Enter your Twilio API Secret: " TWILIO_API_SECRET
+read -sp "Enter your Twilio Auth Token: " TWILIO_AUTH_TOKEN
 echo
 read -p "Enter your Twilio phone number (with country code, e.g., +1234567890): " TWILIO_FROM_NUMBER
 read -p "Enter the phone number to receive SMS (with country code): " TWILIO_TO_NUMBER
@@ -34,8 +33,7 @@ read -p "Enter the phone number to receive SMS (with country code): " TWILIO_TO_
 cat > "$ENV_FILE" << EOF
 # Twilio credentials for Claude Docker
 TWILIO_ACCOUNT_SID=$TWILIO_ACCOUNT_SID
-TWILIO_API_KEY=$TWILIO_API_KEY
-TWILIO_API_SECRET=$TWILIO_API_SECRET
+TWILIO_AUTH_TOKEN=$TWILIO_AUTH_TOKEN
 TWILIO_FROM_NUMBER=$TWILIO_FROM_NUMBER
 TWILIO_TO_NUMBER=$TWILIO_TO_NUMBER
 EOF

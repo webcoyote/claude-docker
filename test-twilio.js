@@ -2,21 +2,20 @@
 
 // Test script to verify Twilio SMS functionality
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_API_SECRET;
-const apiKey = process.env.TWILIO_API_KEY;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 const fromNumber = process.env.TWILIO_FROM_NUMBER;
 const toNumber = process.env.TWILIO_TO_NUMBER;
 
 console.log('Twilio Test Configuration:');
 console.log(`Account SID: ${accountSid?.substring(0, 10)}...`);
-console.log(`API Key: ${apiKey?.substring(0, 10)}...`);
+console.log(`Auth Token: ${authToken ? '***' + authToken.substring(authToken.length - 4) : 'Not set'}`);
 console.log(`From: ${fromNumber}`);
 console.log(`To: ${toNumber}`);
 
 // Using Twilio REST API directly
 const https = require('https');
 
-const auth = Buffer.from(`${apiKey}:${authToken}`).toString('base64');
+const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64');
 const data = new URLSearchParams({
     To: toNumber,
     From: fromNumber,

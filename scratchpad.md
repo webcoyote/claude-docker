@@ -128,6 +128,41 @@ Building a Docker container that runs Claude Code with full autonomous permissio
   - Tokens stored in temp locations that get cleared
   - Need to find exact token storage location and persist it
 
+## MCP Integration Update (2024-12-17)
+
+### ✅ COMPLETED: Simplified Twilio MCP Integration
+
+**What Changed:**
+1. **Switched MCP Server:** From `@twilio-alpha/mcp` (API Key/Secret) to `@yiyang.1i/sms-mcp-server` (Auth Token)
+2. **Simplified Configuration:** MCP setup now happens during Docker build instead of runtime
+3. **Removed Complexity:** No more mcp-config.json or environment variable substitution
+
+**Implementation Details:**
+1. **Updated .env.example:**
+   - Removed: `TWILIO_API_KEY` and `TWILIO_API_SECRET`
+   - Added: `TWILIO_AUTH_TOKEN`
+   - Kept: `TWILIO_ACCOUNT_SID`, `TWILIO_FROM_NUMBER`, `TWILIO_TO_NUMBER`
+
+2. **Updated Dockerfile:**
+   - Removed global installation of `@twilio-alpha/mcp`
+   - Added MCP configuration during build using `claude mcp add-json` command
+   - MCP server is configured if Twilio credentials are present in .env
+
+3. **Simplified startup.sh:**
+   - Removed all MCP configuration logic
+   - Just loads environment variables and starts Claude
+   - Shows Twilio status on startup
+
+4. **Removed Files:**
+   - `config/mcp-config.json` (no longer needed)
+   - `config/` directory (now empty)
+
+**Result:**
+- MCP configuration is baked into the Docker image at build time
+- No runtime configuration needed
+- Simpler, more reliable setup
+- SMS capability available via `twilio__send_text` command
+
 ## Quick References
 - Install: `./scripts/install.sh`
 - Usage: `claude-docker` (from any project directory)

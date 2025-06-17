@@ -1,28 +1,23 @@
 #!/bin/bash
 # ABOUTME: Startup script for Claude Code container with MCP server
-# ABOUTME: Configures environment and starts Claude Code with Twilio MCP integration
+# ABOUTME: Loads environment and starts Claude Code with pre-configured Twilio MCP
 
 # Load environment variables from .env if it exists
 # Use the .env file baked into the image at build time
 if [ -f /app/.env ]; then
-    echo "Loading credentials from baked-in .env file"
+    echo "Loading environment from baked-in .env file"
     set -a
     source /app/.env 2>/dev/null || true
     set +a
     
-    # Export Twilio variables for MCP server
+    # Export Twilio variables for runtime use
     export TWILIO_ACCOUNT_SID
-    export TWILIO_API_KEY
-    export TWILIO_API_SECRET
+    export TWILIO_AUTH_TOKEN
     export TWILIO_FROM_NUMBER
     export TWILIO_TO_NUMBER
 else
-    echo "WARNING: No .env file found in image. Twilio features will be unavailable."
-    echo "To enable Twilio: create .env in claude-docker directory before building the image."
+    echo "WARNING: No .env file found in image."
 fi
-
-# Configure Claude Code to use the MCP server
-export CLAUDE_MCP_CONFIG=/app/config/mcp-config.json
 
 # Check for existing authentication
 if [ -f "$HOME/.claude/.credentials.json" ]; then
@@ -33,14 +28,14 @@ else
 fi
 
 # Verify Twilio MCP configuration
-if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_API_KEY" ] && [ -n "$TWILIO_API_SECRET" ]; then
-    echo "Twilio MCP pre-configured with:"
+if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then
+    echo "Twilio MCP server configured with:"
     echo "  - Account SID: ${TWILIO_ACCOUNT_SID:0:10}..."
     echo "  - From Number: $TWILIO_FROM_NUMBER"
     echo "  - To Number: $TWILIO_TO_NUMBER"
-    echo "  - MCP Config: $CLAUDE_MCP_CONFIG"
+    echo "  - SMS capability ready via: twilio__send_text"
 else
-    echo "No Twilio credentials found, MCP features will be unavailable"
+    echo "No Twilio credentials found"
 fi
 
 # Start Claude Code with permissions bypass

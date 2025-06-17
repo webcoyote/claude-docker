@@ -33,8 +33,7 @@ A Docker container setup for running Claude Code with full autonomous permission
    
    # For Twilio MCP integration (optional):
    TWILIO_ACCOUNT_SID=your_twilio_sid  
-   TWILIO_API_KEY=your_twilio_api_key
-   TWILIO_API_SECRET=your_twilio_api_secret
+   TWILIO_AUTH_TOKEN=your_twilio_auth_token
    TWILIO_FROM_NUMBER=your_twilio_number
    TWILIO_TO_NUMBER=your_phone_number
    ```
@@ -44,7 +43,7 @@ A Docker container setup for running Claude Code with full autonomous permission
    > - You can use the image from any directory without needing the .env file
    > - Keep your image secure since it contains your credentials
    
-   > **Note**: Twilio MCP requires API Key/Secret instead of Auth Token. Create API keys in your Twilio Console under Account → API keys & tokens.
+   > **Note**: Twilio MCP uses Account SID and Auth Token. You can find these in your Twilio Console.
 
 3. **Build and install:**
    ```bash
@@ -138,8 +137,6 @@ claude-docker/
 │   ├── claude-docker.sh   # Wrapper script for container
 │   ├── install.sh         # Installation script  
 │   └── startup.sh         # Container startup script
-├── config/
-│   └── mcp-config.json   # MCP server configuration
 └── templates/
     └── scratchpad.md     # Template for project context
 ```

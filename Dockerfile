@@ -28,14 +28,8 @@ RUN npm install -g @anthropic-ai/claude-code
 # Ensure npm global bin is in PATH
 ENV PATH="/usr/local/bin:${PATH}"
 
-# Install Twilio MCP server
-RUN npm install -g @twilio-alpha/mcp
-
 # Create directories for configuration
-RUN mkdir -p /app/config /app/.claude /home/claude-user/.claude
-
-# Copy MCP configuration
-COPY config/mcp-config.json /app/config/
+RUN mkdir -p /app/.claude /home/claude-user/.claude
 
 # Copy startup script
 COPY scripts/startup.sh /app/
@@ -50,6 +44,16 @@ RUN chown -R claude-user:claude-user /app /home/claude-user
 
 # Switch to non-root user
 USER claude-user
+
+# Configure MCP server during build if Twilio credentials are provided
+RUN bash -c 'source /app/.env && \
+    if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then \
+        echo "Configuring Twilio MCP server..." && \
+        /usr/local/bin/claude mcp add-json twilio \
+        "{\"command\":\"npx\",\"args\":[\"-y\",\"@yiyang.1i/sms-mcp-server\"],\"env\":{\"ACCOUNT_SID\":\"$TWILIO_ACCOUNT_SID\",\"AUTH_TOKEN\":\"$TWILIO_AUTH_TOKEN\",\"FROM_NUMBER\":\"$TWILIO_FROM_NUMBER\"}}"; \
+    else \
+        echo "No Twilio credentials found, skipping MCP configuration"; \
+    fi'
 
 # Set working directory to mounted volume
 WORKDIR /workspace
