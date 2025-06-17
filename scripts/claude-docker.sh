@@ -38,28 +38,24 @@ fi
 NEED_REBUILD=false
 
 if ! docker images | grep -q "claude-docker"; then
-    echo "Building Claude Docker image with your user permissions..."
+    echo "Building Claude Docker image for first time..."
     NEED_REBUILD=true
-elif ! docker image inspect claude-docker:latest | grep -q "USER_UID.*$(id -u)" 2>/dev/null; then
-    echo "Rebuilding Claude Docker image to match your user permissions..."
-    NEED_REBUILD=true
-elif [ -f "$ENV_FILE" ]; then
-    # Check if .env is newer than the Docker image
-    IMAGE_CREATED=$(docker inspect -f '{{.Created}}' claude-docker:latest 2>/dev/null)
-    if [ -n "$IMAGE_CREATED" ]; then
-        IMAGE_TIMESTAMP=$(date -d "$IMAGE_CREATED" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%S" "${IMAGE_CREATED%%.*}" +%s 2>/dev/null)
-        ENV_TIMESTAMP=$(stat -c %Y "$ENV_FILE" 2>/dev/null || stat -f %m "$ENV_FILE" 2>/dev/null)
-        
-        if [ -n "$IMAGE_TIMESTAMP" ] && [ -n "$ENV_TIMESTAMP" ] && [ "$ENV_TIMESTAMP" -gt "$IMAGE_TIMESTAMP" ]; then
-            echo "⚠️  .env file has been updated since last build"
-            echo "   Rebuilding to include new credentials..."
-            NEED_REBUILD=true
-        fi
-    fi
 fi
 
 if [ "$NEED_REBUILD" = true ]; then
+    # Copy authentication files to build context
+    if [ -f "$HOME/.claude.json" ]; then
+        cp "$HOME/.claude.json" "$PROJECT_ROOT/.claude.json"
+    fi
+    if [ -d "$HOME/.claude" ]; then
+        cp -r "$HOME/.claude" "$PROJECT_ROOT/.claude"
+    fi
+    
     docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t claude-docker:latest "$PROJECT_ROOT"
+    
+    # Clean up copied auth files
+    rm -f "$PROJECT_ROOT/.claude.json"
+    rm -rf "$PROJECT_ROOT/.claude"
 fi
 
 # Ensure the claude-home directory exists

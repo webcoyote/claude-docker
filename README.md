@@ -10,6 +10,15 @@ A Docker container setup for running Claude Code with full autonomous permission
 - Auto-configures Claude settings for seamless operation
 - Simple one-command setup and usage
 
+## Prerequisites
+
+**Important**: Before building the Docker image, you must authenticate Claude Code on your host system:
+1. Install Claude Code: `npm install -g @anthropic-ai/claude-code`
+2. Run `claude` and complete the authentication flow
+3. Verify authentication files exist: `ls ~/.claude.json ~/.claude/`
+
+The Docker build will copy your authentication from these locations.
+
 ## Quick Start
 
 1. **Clone the repository:**
@@ -156,6 +165,23 @@ Each project gets:
 - `.claude/settings.json` - Claude Code settings with MCP
 - `.claude/CLAUDE.md` - Instructions for Claude behavior
 - `scratchpad.md` - Project context file
+
+### Rebuilding the Image
+
+The Docker image is built only once when you first run `claude-docker`. To force a rebuild:
+
+```bash
+# Remove the existing image
+docker rmi claude-docker:latest
+
+# Next run of claude-docker will rebuild
+claude-docker
+```
+
+Rebuild when you:
+- Update your .env file with new credentials
+- Update the Claude Docker repository
+- Want to refresh the authentication files
 
 ## Requirements
 

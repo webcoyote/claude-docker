@@ -39,17 +39,30 @@ RUN chmod +x /app/startup.sh
 # This enables one-time setup - no need for .env in project directories
 COPY .env /app/.env
 
-# Set proper ownership
+# Copy Claude authentication files from host
+# Note: These must exist - host must have authenticated Claude Code first
+COPY .claude.json /tmp/.claude.json
+COPY .claude /tmp/.claude
+
+# Move auth files to proper location before switching user
+RUN cp /tmp/.claude.json /home/claude-user/.claude.json && \
+    cp -r /tmp/.claude/* /home/claude-user/.claude/ && \
+    rm -rf /tmp/.claude*
+
+# Set proper ownership for everything
 RUN chown -R claude-user:claude-user /app /home/claude-user
 
 # Switch to non-root user
 USER claude-user
 
+# Set HOME immediately after switching user
+ENV HOME=/home/claude-user
+
 # Configure MCP server during build if Twilio credentials are provided
 RUN bash -c 'source /app/.env && \
     if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then \
         echo "Configuring Twilio MCP server..." && \
-        /usr/local/bin/claude mcp add-json twilio \
+        /usr/local/bin/claude mcp add-json twilio -s user \
         "{\"command\":\"npx\",\"args\":[\"-y\",\"@yiyang.1i/sms-mcp-server\"],\"env\":{\"ACCOUNT_SID\":\"$TWILIO_ACCOUNT_SID\",\"AUTH_TOKEN\":\"$TWILIO_AUTH_TOKEN\",\"FROM_NUMBER\":\"$TWILIO_FROM_NUMBER\"}}"; \
     else \
         echo "No Twilio credentials found, skipping MCP configuration"; \
@@ -60,7 +73,6 @@ WORKDIR /workspace
 
 # Environment variables will be passed from host
 ENV NODE_ENV=production
-ENV HOME=/home/claude-user
 
 # Start both MCP server and Claude Code
 ENTRYPOINT ["/app/startup.sh"]
