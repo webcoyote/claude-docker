@@ -28,6 +28,10 @@ fi
 ENV_FILE="$PROJECT_ROOT/.env"
 if [ -f "$ENV_FILE" ]; then
     echo "✓ Found .env file with credentials"
+    # Source .env to get configuration variables
+    set -a
+    source "$ENV_FILE" 2>/dev/null || true
+    set +a
 else
     echo "⚠️  No .env file found at $ENV_FILE"
     echo "   Twilio MCP features will be unavailable."
@@ -61,11 +65,41 @@ fi
 # Ensure the claude-home directory exists
 mkdir -p "$HOME/.claude-docker/claude-home"
 
+# Prepare additional mount arguments
+MOUNT_ARGS=""
+ENV_ARGS=""
+
+# Mount conda installation if specified
+if [ -n "$CONDA_PREFIX" ] && [ -d "$CONDA_PREFIX" ]; then
+    echo "✓ Mounting conda installation from $CONDA_PREFIX"
+    MOUNT_ARGS="$MOUNT_ARGS -v $CONDA_PREFIX:$CONDA_PREFIX:ro"
+    ENV_ARGS="$ENV_ARGS -e CONDA_PREFIX=$CONDA_PREFIX -e CONDA_EXE=$CONDA_PREFIX/bin/conda"
+else
+    echo "No conda installation configured"
+fi
+
+# Mount additional conda directories if specified
+if [ -n "$CONDA_EXTRA_DIRS" ]; then
+    echo "✓ Mounting additional conda directories..."
+    for dir in $CONDA_EXTRA_DIRS; do
+        if [ -d "$dir" ]; then
+            echo "  - Mounting $dir"
+            MOUNT_ARGS="$MOUNT_ARGS -v $dir:$dir:ro"
+        else
+            echo "  - Skipping $dir (not found)"
+        fi
+    done
+else
+    echo "No additional conda directories configured"
+fi
+
 # Run Claude Code in Docker
 echo "Starting Claude Code in Docker..."
 docker run -it --rm \
     -v "$CURRENT_DIR:/workspace" \
     -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
+    $MOUNT_ARGS \
+    $ENV_ARGS \
     --workdir /workspace \
     --name claude-docker-session \
     claude-docker:latest "$@"
