@@ -54,13 +54,21 @@ if [ "$NEED_REBUILD" = true ]; then
         cp -r "$HOME/.claude" "$PROJECT_ROOT/.claude"
     fi
     
-    # Build docker command with conditional system packages
+    # Get git config from host
+    GIT_USER_NAME=$(git config --global --get user.name 2>/dev/null || echo "")
+    GIT_USER_EMAIL=$(git config --global --get user.email 2>/dev/null || echo "")
+    
+    # Build docker command with conditional system packages and git config
+    BUILD_ARGS="--build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g)"
+    if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then
+        BUILD_ARGS="$BUILD_ARGS --build-arg GIT_USER_NAME=\"$GIT_USER_NAME\" --build-arg GIT_USER_EMAIL=\"$GIT_USER_EMAIL\""
+    fi
     if [ -n "$SYSTEM_PACKAGES" ]; then
         echo "✓ Building with additional system packages: $SYSTEM_PACKAGES"
-        docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) --build-arg SYSTEM_PACKAGES="$SYSTEM_PACKAGES" -t claude-docker:latest "$PROJECT_ROOT"
-    else
-        docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t claude-docker:latest "$PROJECT_ROOT"
+        BUILD_ARGS="$BUILD_ARGS --build-arg SYSTEM_PACKAGES=\"$SYSTEM_PACKAGES\""
     fi
+    
+    eval "docker build $BUILD_ARGS -t claude-docker:latest \"$PROJECT_ROOT\""
     
     # Clean up copied auth files
     rm -f "$PROJECT_ROOT/.claude.json"

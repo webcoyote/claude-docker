@@ -10,4 +10,199 @@ Format: <type>(<scope>): <short summary>
 === GIT DIFF SUMMARY FOR COMMIT ===
 
 
+
+=== FILE: .env.example ===
+
+diff --git a/.env.example b/.env.example
+index 2255671bb07891120f93214f79d2884eec9aa013..e1e10a4c4b0e39c94bba965e64706ee1f3c05485 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,10 +1,6 @@
+ # Copy this file to .env and fill in your credentials
+ # The .env file will be baked into the Docker image during build
+ 
+-# Required: Git configuration for commits made inside the container
+-GIT_USER_NAME=Your Name
+-GIT_USER_EMAIL=your.email@example.com
+-
+ # Optional: Twilio credentials for SMS notifications
+ TWILIO_ACCOUNT_SID=your_twilio_account_sid
+ TWILIO_AUTH_TOKEN=your_twilio_auth_token
+
+
+=== FILE: Dockerfile ===
+
+diff --git a/Dockerfile b/Dockerfile
+index 973eb6db7fdd1b8d65dca0f1635a8143e83230be..a622bd01b57adf734109252060eeb26fdaf06c64 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -82,16 +82,18 @@ RUN bash -c 'source /app/.env && \
+         echo "No Twilio credentials found, skipping MCP configuration"; \
+     fi'
+ 
+-# Configure git user during build
+-RUN bash -c 'source /app/.env && \
+-    if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then \
+-        echo "Configuring git user: $GIT_USER_NAME <$GIT_USER_EMAIL>" && \
+-        git config --global user.name "$GIT_USER_NAME" && \
+-        git config --global user.email "$GIT_USER_EMAIL" && \
++# Configure git user during build using host git config
++RUN bash -c '\
++    GIT_NAME=$(git config --global --get user.name 2>/dev/null || echo "") && \
++    GIT_EMAIL=$(git config --global --get user.email 2>/dev/null || echo "") && \
++    if [ -n "$GIT_NAME" ] && [ -n "$GIT_EMAIL" ]; then \
++        echo "Configuring git user from host: $GIT_NAME <$GIT_EMAIL>" && \
++        git config --global user.name "$GIT_NAME" && \
++        git config --global user.email "$GIT_EMAIL" && \
+         echo "Git configuration complete"; \
+     else \
+-        echo "Warning: GIT_USER_NAME and GIT_USER_EMAIL not set in .env"; \
+-        echo "Git commits will require manual configuration"; \
++        echo "Warning: No git user configured on host system"; \
++        echo "Run 'git config --global user.name "Your Name"' and 'git config --global user.email "you@example.com"' on host first"; \
+     fi'
+ 
+ # Set working directory to mounted volume
+
+
+=== FILE: README.md ===
+
+diff --git a/README.md b/README.md
+index 1cf749742c1de9bb3a9bc65ae13c1114f10e5c26..750fd5a1adb78769a6156b5bc9c054138fc0f25d 100644
+--- a/README.md
++++ b/README.md
+@@ -34,10 +34,13 @@ ls ~/.claude.json ~/.claude/
+ - Ensure Docker daemon is running before proceeding
+ 
+ ### 3. Git Configuration (Required)
+-For any git commits made inside the container, you'll need to provide:
+-- Your name and email address
+-- These will be configured in the `.env` file
+-- Used for `git config --global user.name` and `git config --global user.email`
++Git configuration is automatically loaded from your host system during Docker build:
++- Make sure you have configured git on your host system first:
++  ```bash
++  git config --global user.name "Your Name"
++  git config --global user.email "your.email@example.com"
++  ```
++- **Important**: Claude Docker will commit to your current branch - make sure you're on the correct branch before starting
+ 
+ ### 4. Twilio Account (Optional - for SMS notifications)
+ If you want SMS notifications when tasks complete:
+@@ -75,10 +78,6 @@ claude-docker
+ # Required
+ ANTHROPIC_API_KEY=your_anthropic_key
+ 
+-# Required - Git configuration for commits
+-GIT_USER_NAME=Your Name
+-GIT_USER_EMAIL=your.email@example.com
+-
+ # Optional - SMS notifications
+ TWILIO_ACCOUNT_SID=your_twilio_sid  
+ TWILIO_AUTH_TOKEN=your_twilio_auth_token
+
+
+=== FILE: commit_diff_summary.txt ===
+
+diff --git a/commit_diff_summary.txt b/commit_diff_summary.txt
+new file mode 100644
+index 0000000000000000000000000000000000000000..df439678c2a5902918baad4156c3cc8bac1a06e8
+--- /dev/null
++++ b/commit_diff_summary.txt
+@@ -0,0 +1,13 @@
++Write a commit message for the changes in the following git diff:
++Follow the following instructions when writing the commit message:
++Subject line: Max 50 chars, imperative mood, capitalized, no period
++Skip a line between subject and body
++Body text: Wrap at 72 chars per line
++Explain what and why, not how
++Reference issue numbers when applicable
++Format: <type>(<scope>): <short summary>
++
++=== GIT DIFF SUMMARY FOR COMMIT ===
++
++
++=== END OF DIFF SUMMARY ===
+
+
+=== FILE: scripts/startup.sh ===
+
+diff --git a/scripts/startup.sh b/scripts/startup.sh
+index 5fdd3aaf82ba05deae2dce6ca368f98914be0cfb..a09eda192ec6407cbc5706b65fc6eb79b19eb66c 100755
+--- a/scripts/startup.sh
++++ b/scripts/startup.sh
+@@ -34,12 +34,7 @@ else
+     echo "No Twilio credentials found - SMS notifications disabled"
+ fi
+ 
+-# Configure git for the mounted workspace
+-if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then
+-    echo "✓ Configuring git: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+-    git config --global user.name "$GIT_USER_NAME"
+-    git config --global user.email "$GIT_USER_EMAIL"
+-fi
++# Git configuration is handled during Docker build from host git config
+ 
+ # Start Claude Code with permissions bypass
+ echo "Starting Claude Code..."
+
+
+=== FILE: templates/.claude/CLAUDE.md ===
+
+diff --git a/templates/.claude/CLAUDE.md b/templates/.claude/CLAUDE.md
+index 2a6187c8d547b0f77f20aa1fb2f13564c9de7311..8af88f7813f35b79c05c08ccb00ec7d5dc56cbb6 100644
+--- a/templates/.claude/CLAUDE.md
++++ b/templates/.claude/CLAUDE.md
+@@ -38,6 +38,7 @@ If ANY Twilio variables are missing, skip SMS notifications and continue task ex
+ - Follow the checklist step by step
+ - Document ALL assumptions made in `task_log.md`
+ - Document ANY problems encountered and how they were solved in `task_log.md`
++- Document ALL insights / discoveries made during implementation in `task_log.md`
+ - Update todo list as steps are completed
+ - NEVER skip steps or take shortcuts
+ - `task_log.md` MUST contain your checklist as well.
+@@ -67,6 +68,8 @@ Must include these sections:
+ ## Deviations from Plan
+ [Any necessary changes from original plan with justification]
+ 
++## Insights / Discoveries
++
+ ## Final Status
+ [Success/Failure with details]
+ ```
+@@ -148,8 +151,8 @@ $CONDA_PREFIX/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_scr
+ - Monitor process health and status
+ 
+ ## Coding Standards
+-- NEVER use hard-coded values - use config files or argparse with defaults
+-- Constants in ALL CAPS at TOP of script
++- NEVER use hard-coded values - use constants, config files or cli argparse args with defaults
++- Constants ALWAYS placed in ALL CAPS at TOP of script
+ - Prefer simple, maintainable solutions over complex ones
+ - Match existing code style within files
+ - NEVER remove code comments unless provably false
+@@ -157,7 +160,7 @@ $CONDA_PREFIX/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_scr
+ - NEVER use mock implementations for any purpose
+ - NEVER commit API credentials - use .env files
+ - NEVER rewrite existing implementations without explicit need
+-- Define constants centrally
++
+ 
+ ## Security Guidelines
+ - Never expose sensitive data in logs or files
+@@ -219,8 +222,8 @@ See task_log.md for full details
+ - Break down into atomic, actionable steps
+ - Execute methodically without shortcuts
+ - Document everything as you work
+-- Never assume - ask for clarification by terminating if critical info missing
+-- Stick to the plan unless technically impossible
++- Never assume - ask for clarification by terminating if CRITICAL info missing. 
++- Minor / Non Critical missing information MUST BE DOCUMENTED in `task_log.md` with your imputations. 
+ - Real implementations only - no mocks, no simplified versions
+ - DO NOT IMPLEMENT FALLBACKS when the specified approach fails
+-- Complete the task as specified or fail explicitly with clear reasoning
+\ No newline at end of file
++- Complete the task EXACTLY as specified or CHOOSE EARLY TERMINATION if plan is flawed or infeasible or you are stuck. 
+\ No newline at end of file
+
 === END OF DIFF SUMMARY ===

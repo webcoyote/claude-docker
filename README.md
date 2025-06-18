@@ -75,9 +75,6 @@ claude-docker
 
 ### Environment Variables (.env)
 ```bash
-# Required
-ANTHROPIC_API_KEY=your_anthropic_key
-
 # Optional - SMS notifications
 TWILIO_ACCOUNT_SID=your_twilio_sid  
 TWILIO_AUTH_TOKEN=your_twilio_auth_token

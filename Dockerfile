@@ -82,19 +82,18 @@ RUN bash -c 'source /app/.env && \
         echo "No Twilio credentials found, skipping MCP configuration"; \
     fi'
 
-# Configure git user during build using host git config
-RUN bash -c '\
-    GIT_NAME=$(git config --global --get user.name 2>/dev/null || echo "") && \
-    GIT_EMAIL=$(git config --global --get user.email 2>/dev/null || echo "") && \
-    if [ -n "$GIT_NAME" ] && [ -n "$GIT_EMAIL" ]; then \
-        echo "Configuring git user from host: $GIT_NAME <$GIT_EMAIL>" && \
-        git config --global user.name "$GIT_NAME" && \
-        git config --global user.email "$GIT_EMAIL" && \
+# Configure git user during build using host git config passed as build args
+ARG GIT_USER_NAME=""
+ARG GIT_USER_EMAIL=""
+RUN if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then \
+        echo "Configuring git user from host: $GIT_USER_NAME <$GIT_USER_EMAIL>" && \
+        git config --global user.name "$GIT_USER_NAME" && \
+        git config --global user.email "$GIT_USER_EMAIL" && \
         echo "Git configuration complete"; \
     else \
         echo "Warning: No git user configured on host system"; \
-        echo "Run 'git config --global user.name "Your Name"' and 'git config --global user.email "you@example.com"' on host first"; \
-    fi'
+        echo "Run 'git config --global user.name \"Your Name\"' and 'git config --global user.email \"you@example.com\"' on host first"; \
+    fi
 
 # Set working directory to mounted volume
 WORKDIR /workspace
