@@ -34,10 +34,13 @@ ls ~/.claude.json ~/.claude/
 - Ensure Docker daemon is running before proceeding
 
 ### 3. Git Configuration (Required)
-For any git commits made inside the container, you'll need to provide:
-- Your name and email address
-- These will be configured in the `.env` file
-- Used for `git config --global user.name` and `git config --global user.email`
+Git configuration is automatically loaded from your host system during Docker build:
+- Make sure you have configured git on your host system first:
+  ```bash
+  git config --global user.name "Your Name"
+  git config --global user.email "your.email@example.com"
+  ```
+- **Important**: Claude Docker will commit to your current branch - make sure you're on the correct branch before starting
 
 ### 4. Twilio Account (Optional - for SMS notifications)
 If you want SMS notifications when tasks complete:
@@ -74,10 +77,6 @@ claude-docker
 ```bash
 # Required
 ANTHROPIC_API_KEY=your_anthropic_key
-
-# Required - Git configuration for commits
-GIT_USER_NAME=Your Name
-GIT_USER_EMAIL=your.email@example.com
 
 # Optional - SMS notifications
 TWILIO_ACCOUNT_SID=your_twilio_sid  

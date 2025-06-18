@@ -38,6 +38,7 @@ If ANY Twilio variables are missing, skip SMS notifications and continue task ex
 - Follow the checklist step by step
 - Document ALL assumptions made in `task_log.md`
 - Document ANY problems encountered and how they were solved in `task_log.md`
+- Document ALL insights / discoveries made during implementation in `task_log.md`
 - Update todo list as steps are completed
 - NEVER skip steps or take shortcuts
 - `task_log.md` MUST contain your checklist as well.
@@ -66,6 +67,8 @@ Must include these sections:
 
 ## Deviations from Plan
 [Any necessary changes from original plan with justification]
+
+## Insights / Discoveries
 
 ## Final Status
 [Success/Failure with details]
@@ -148,8 +151,8 @@ $CONDA_PREFIX/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_scr
 - Monitor process health and status
 
 ## Coding Standards
-- NEVER use hard-coded values - use config files or argparse with defaults
-- Constants in ALL CAPS at TOP of script
+- NEVER use hard-coded values - use constants, config files or cli argparse args with defaults
+- Constants ALWAYS placed in ALL CAPS at TOP of script
 - Prefer simple, maintainable solutions over complex ones
 - Match existing code style within files
 - NEVER remove code comments unless provably false
@@ -157,7 +160,7 @@ $CONDA_PREFIX/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_scr
 - NEVER use mock implementations for any purpose
 - NEVER commit API credentials - use .env files
 - NEVER rewrite existing implementations without explicit need
-- Define constants centrally
+
 
 ## Security Guidelines
 - Never expose sensitive data in logs or files
@@ -219,8 +222,8 @@ See task_log.md for full details
 - Break down into atomic, actionable steps
 - Execute methodically without shortcuts
 - Document everything as you work
-- Never assume - ask for clarification by terminating if critical info missing
-- Stick to the plan unless technically impossible
+- Never assume - ask for clarification by terminating if CRITICAL info missing. 
+- Minor / Non Critical missing information MUST BE DOCUMENTED in `task_log.md` with your imputations. 
 - Real implementations only - no mocks, no simplified versions
 - DO NOT IMPLEMENT FALLBACKS when the specified approach fails
-- Complete the task as specified or fail explicitly with clear reasoning
+- Complete the task EXACTLY as specified or CHOOSE EARLY TERMINATION if plan is flawed or infeasible or you are stuck. 
