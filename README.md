@@ -141,12 +141,6 @@ For the best experience, run `claude-docker` once per project and leave it runni
 - Supports custom conda installations (ideal for academic/lab environments)
 - Mounts conda directories to preserve original paths and configurations
 
-
-### 🗂️ Context Persistence
-- Maintains project-specific Claude configuration
-- Persistent across container sessions
-- Helps Claude remember project context
-
 ### 🔑 Authentication Persistence
 - Login once, use forever - authentication tokens persist across sessions
 - No need to re-authenticate every time you start claude-docker
