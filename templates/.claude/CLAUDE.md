@@ -90,7 +90,7 @@ Upon successful task completion:
 1. Clean up temporary files and stop unnecessary processes
 2. Leave environment in clean, reproducible state  
 3. Complete final documentation in `task_log.md`
-4. Make git commits following the commit message rules below
+4. Make git commits following the commit message rules below. ALWAYS PUSH TO REMOTE.
 5. If Twilio is configured (all env vars present), send completion message to `$TWILIO_TO_NUMBER` with summary
 6. Completion msg MUST include a remote url link. See below for generation instructions.
 

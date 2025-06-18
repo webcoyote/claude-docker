@@ -6,15 +6,14 @@ A Docker container setup for running Claude Code with full autonomous permission
 
 This codebase includes a custom `CLAUDE.md` template that configures Claude as an autonomous task executor. Located at `/templates/.claude/CLAUDE.md`, this file provides detailed instructions for how Claude should behave when executing tasks.
 
-**Default Usage:** The claude-docker agent expects a detailed `plan.md` file in your project root containing task specifications. Claude will read this plan and execute it as faithfully as possible, documenting progress in `task_log.md`.
+**Default Design:** The claude-docker agent expects a detailed `plan.md` file in your project root containing task specifications and which conda env to use. Claude will read this plan and execute it as faithfully as possible, documenting progress in `task_log.md`, send a text on completion if you set up your twilio credentials (optional). Simply tell it to make sure it has read the user scope claude md file and to execute. 
 
 ## What This Does
-
-- Runs Claude Code in an isolated Docker container with full autonomy
-- Integrates Twilio MCP for SMS notifications when tasks complete
-- Provides persistent context across sessions
-- Auto-configures Claude settings for seamless operation
-- Simple one-command setup and usage
+- Runs Claude Code in an isolated Docker container with full autonomy.
+- Integrates Twilio MCP for SMS notifications when tasks complete.
+- Simple one-command setup and usage.
+- Integrates existing conda environments to avoid custom env instructions in the Dockerfile.
+- Documents work in a file `task_log.md`.
 
 ## Prerequisites
 
@@ -124,11 +123,6 @@ For the best experience, run `claude-docker` once per project and leave it runni
    docker stop claude-docker-session
    ```
 
-This workflow gives you:
-- ✅ Persistent authentication (login once per machine)
-- ✅ Persistent project context (one session per project)  
-- ✅ Perfect file permissions between host and container
-- ✅ No repeated setup or authentication
 
 ## Features
 
@@ -176,20 +170,6 @@ This workflow gives you:
 4. **Project Mounting**: Your project directory mounts to `/workspace`
 5. **Clean Exit**: Container removes itself when Claude session ends
 
-## Directory Structure
-
-```
-claude-docker/
-├── Dockerfile             # Main container definition
-├── .env.example           # Template for environment variables
-├── scripts/
-│   ├── claude-docker.sh   # Wrapper script for container
-│   ├── install.sh         # Installation script  
-│   └── startup.sh         # Container startup script
-└── templates/
-    └── .claude/
-        └── CLAUDE.md      # Claude behavior instructions
-```
 
 ## How This Differs from Anthropic's DevContainer
 
