@@ -82,6 +82,7 @@ fi
 if [ -n "$CONDA_EXTRA_DIRS" ]; then
     echo "✓ Mounting additional conda directories..."
     CONDA_ENVS_PATHS=""
+    CONDA_PKGS_PATHS=""
     for dir in $CONDA_EXTRA_DIRS; do
         if [ -d "$dir" ]; then
             echo "  - Mounting $dir"
@@ -94,6 +95,14 @@ if [ -n "$CONDA_EXTRA_DIRS" ]; then
                     CONDA_ENVS_PATHS="$CONDA_ENVS_PATHS:$dir"
                 fi
             fi
+            # Build comma-separated list for CONDA_PKGS_DIRS
+            if [[ "$dir" == *"pkg"* ]]; then
+                if [ -z "$CONDA_PKGS_PATHS" ]; then
+                    CONDA_PKGS_PATHS="$dir"
+                else
+                    CONDA_PKGS_PATHS="$CONDA_PKGS_PATHS:$dir"
+                fi
+            fi
         else
             echo "  - Skipping $dir (not found)"
         fi
@@ -102,6 +111,11 @@ if [ -n "$CONDA_EXTRA_DIRS" ]; then
     if [ -n "$CONDA_ENVS_PATHS" ]; then
         ENV_ARGS="$ENV_ARGS -e CONDA_ENVS_DIRS=$CONDA_ENVS_PATHS"
         echo "  - Setting CONDA_ENVS_DIRS=$CONDA_ENVS_PATHS"
+    fi
+    # Set CONDA_PKGS_DIRS environment variable if we found pkg paths
+    if [ -n "$CONDA_PKGS_PATHS" ]; then
+        ENV_ARGS="$ENV_ARGS -e CONDA_PKGS_DIRS=$CONDA_PKGS_PATHS"
+        echo "  - Setting CONDA_PKGS_DIRS=$CONDA_PKGS_PATHS"
     fi
 else
     echo "No additional conda directories configured"
