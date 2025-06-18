@@ -50,19 +50,18 @@ RUN chmod +x /app/startup.sh
 # This enables one-time setup - no need for .env in project directories
 COPY .env /app/.env
 
-# Copy CLAUDE.md template to user's .claude directory
-COPY templates/.claude/CLAUDE.md /tmp/CLAUDE.md
+# Copy CLAUDE.md template directly to final location
+COPY templates/.claude/CLAUDE.md /home/claude-user/.claude/CLAUDE.md
 
 # Copy Claude authentication files from host
 # Note: These must exist - host must have authenticated Claude Code first
 COPY .claude.json /tmp/.claude.json
 COPY .claude /tmp/.claude
 
-# Move auth files and CLAUDE.md template to proper location before switching user
+# Move auth files to proper location before switching user
 RUN cp /tmp/.claude.json /home/claude-user/.claude.json && \
     cp -r /tmp/.claude/* /home/claude-user/.claude/ && \
-    cp /tmp/CLAUDE.md /home/claude-user/.claude/CLAUDE.md && \
-    rm -rf /tmp/.claude* /tmp/CLAUDE.md
+    rm -rf /tmp/.claude*
 
 # Set proper ownership for everything
 RUN chown -R claude-user:claude-user /app /home/claude-user
