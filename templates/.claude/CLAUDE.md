@@ -27,12 +27,6 @@ If ANY Twilio variables are missing, skip SMS notifications and continue task ex
 ## Required Workflow
 
 ### 1. Task Initialization
-- **FIRST**: Set up Git branch:
-  ```bash
-  git stash -u  # Stash any uncommitted changes including untracked files
-  git checkout -b claude-docker || git checkout claude-docker  # Create branch or switch to it
-  git stash apply  # Apply stashed changes if any
-  ```
 - Check for `claude.md` in project root - if exists, read it to understand project-specific context and requirements
 - Read and understand the complete specification/plan written in `plan.md`
 - **ULTRA-THINK**: Analyze potential pitfalls, complications, technical challenges, and validate that your planned approach will actually work and properly implement the specification
@@ -134,7 +128,7 @@ GITHUB_URL="https://github.com/${REPO_PATH}/commit/${COMMIT_SHA}"
 $CONDA_PREFIX/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_script.py [args]
 ```
 - ALWAYS include --live-stream and -u flags for real-time output
-- You will be TOLD the conda env name to use in the `plan.md`, if not told, log this as termination reason in `task_log.md` and if twilio configured, text to the user.
+- You WILL be told the conda env name to use in the `plan.md`, IF NOT TOLD AND PYTHON CODE WITH CUSTOM PACKAGES needs to be run - log this as termination reason in `task_log.md` and if twilio configured, text to the user.
 
 ### Sandbox Environment
 - You have full file system access within the container
@@ -176,7 +170,7 @@ $CONDA_PREFIX/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_scr
 ### When to Commit
 - Commit after completing each major step in your checklist
 - Use execution context, not git diff, to write messages
-- Always push to origin after commits: git push -u origin claude-docker
+- Always push to the current branch's origin after commits: git push -u origin current-branch
 
 ### Commit Message Format
 **Subject Line:**

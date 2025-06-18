@@ -33,3 +33,5 @@ data/
 
 # Environment file with credentials
 .env
+plan.md 
+task_log.md
