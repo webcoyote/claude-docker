@@ -13,7 +13,6 @@ if [ ! -d "$CURRENT_DIR/.claude" ]; then
     mkdir -p "$CURRENT_DIR/.claude"
     
     # Copy template files
-    cp "$PROJECT_ROOT/templates/.claude/settings.local.json" "$CURRENT_DIR/.claude/"
     cp "$PROJECT_ROOT/templates/.claude/CLAUDE.md" "$CURRENT_DIR/.claude/"
     
     # Create scratchpad.md if it doesn't exist

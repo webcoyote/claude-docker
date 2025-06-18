@@ -19,16 +19,29 @@ Docker container for Claude Code with full autonomous permissions, authenticatio
 - **RESULT**: Zero-friction experience - no login prompts, SMS ready instantly
 
 ## 🎯 CURRENT FOCUS
-**Phase 3 - Smart SMS Notifications:**
+**CRITICAL ISSUE TO RESOLVE NEXT SESSION:**
 
-### Next Task: Prompt Engineering for SMS Notifications
-**Goal:** Configure Claude to automatically send completion SMS to `$TWILIO_TO_NUMBER`
+### CLAUDE.md Template Not Being Copied to Container
+**Problem:** The CLAUDE.md template file is not appearing in `~/.claude/CLAUDE.md` inside the container, so Claude doesn't read the project instructions.
 
-**Implementation Plan:**
-1. Update CLAUDE.md template with SMS notification instructions
-2. Add completion detection logic
-3. Integrate with existing Twilio MCP server
-4. Test notification flow
+**Root Cause Identified:** In Dockerfile line 65, the cleanup command `rm -rf /tmp/.claude*` is deleting `/tmp/CLAUDE.md` BEFORE it can be copied to the final location.
+
+**Solution Applied (needs testing):**
+- Fixed order: copy CLAUDE.md BEFORE cleanup in same RUN block
+- Line 64: `cp /tmp/CLAUDE.md /home/claude-user/.claude/CLAUDE.md &&`
+- Line 65: `rm -rf /tmp/.claude* /tmp/CLAUDE.md`
+
+**Test Command:** 
+```bash
+docker rmi claude-docker:latest && claude-docker
+# Then: ls -la ~/.claude/CLAUDE.md
+```
+
+**Impact:** Without this file, Claude doesn't know:
+- How to use conda environments properly
+- When/how to send SMS notifications  
+- Context persistence guidelines
+- Available tools and capabilities
 
 ## 📚 KEY INSIGHTS FROM AUTHENTICATION JOURNEY
 
