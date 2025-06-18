@@ -81,14 +81,28 @@ fi
 # Mount additional conda directories if specified
 if [ -n "$CONDA_EXTRA_DIRS" ]; then
     echo "✓ Mounting additional conda directories..."
+    CONDA_ENVS_PATHS=""
     for dir in $CONDA_EXTRA_DIRS; do
         if [ -d "$dir" ]; then
             echo "  - Mounting $dir"
             MOUNT_ARGS="$MOUNT_ARGS -v $dir:$dir:ro"
+            # Build comma-separated list for CONDA_ENVS_DIRS
+            if [[ "$dir" == *"envs"* ]]; then
+                if [ -z "$CONDA_ENVS_PATHS" ]; then
+                    CONDA_ENVS_PATHS="$dir"
+                else
+                    CONDA_ENVS_PATHS="$CONDA_ENVS_PATHS:$dir"
+                fi
+            fi
         else
             echo "  - Skipping $dir (not found)"
         fi
     done
+    # Set CONDA_ENVS_DIRS environment variable if we found env paths
+    if [ -n "$CONDA_ENVS_PATHS" ]; then
+        ENV_ARGS="$ENV_ARGS -e CONDA_ENVS_DIRS=$CONDA_ENVS_PATHS"
+        echo "  - Setting CONDA_ENVS_DIRS=$CONDA_ENVS_PATHS"
+    fi
 else
     echo "No additional conda directories configured"
 fi
