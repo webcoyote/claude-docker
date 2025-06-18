@@ -12,6 +12,17 @@ RUN apt-get update && apt-get install -y \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
+# Install additional system packages if specified
+ARG SYSTEM_PACKAGES=""
+RUN if [ -n "$SYSTEM_PACKAGES" ]; then \
+    echo "Installing additional system packages: $SYSTEM_PACKAGES" && \
+    apt-get update && \
+    apt-get install -y $SYSTEM_PACKAGES && \
+    rm -rf /var/lib/apt/lists/*; \
+else \
+    echo "No additional system packages specified"; \
+fi
+
 # Create a non-root user with matching host UID/GID
 ARG USER_UID=1000
 ARG USER_GID=1000

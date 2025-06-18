@@ -113,6 +113,12 @@ This workflow gives you:
 - Configurable via MCP integration
 - Optional - works without if Twilio not configured
 
+### 🐍 Conda Integration
+- Supports custom conda installations (ideal for academic/lab environments)
+- Mounts conda directories to preserve original paths and configurations
+- Automatic environment variable configuration for seamless conda usage
+- Works with environments and package caches in non-standard locations
+
 ### 🗂️ Context Persistence
 - Maintains scratchpad.md files for project memory
 - Persistent across container sessions
@@ -181,7 +187,49 @@ claude-docker
 Rebuild when you:
 - Update your .env file with new credentials
 - Update the Claude Docker repository
-- Want to refresh the authentication files
+
+### Conda Configuration
+
+For custom conda installations (common in academic/lab environments), add these to your `.env` file:
+
+```bash
+# Main conda installation
+CONDA_PREFIX=/vol/biomedic3/username/miniconda3
+
+# Additional conda directories (space-separated)
+CONDA_EXTRA_DIRS="/vol/biomedic3/username/.conda/envs /vol/biomedic3/username/conda_envs /vol/biomedic3/username/.conda/pkgs /vol/biomedic3/username/conda_pkgs"
+```
+
+**How it works:**
+- `CONDA_PREFIX`: Mounts your conda installation to the same path in container
+- `CONDA_EXTRA_DIRS`: Mounts additional directories and automatically configures conda
+
+**Automatic Detection:**
+- Paths containing `*env*` → Added to `CONDA_ENVS_DIRS` (conda environment search)
+- Paths containing `*pkg*` → Added to `CONDA_PKGS_DIRS` (package cache search)
+
+**Result:** All your conda environments and packages work exactly as they do on your host system.
+
+### System Package Installation
+
+For scientific computing packages that require system libraries, add them to your `.env` file:
+
+```bash
+# Install OpenSlide for medical imaging
+SYSTEM_PACKAGES="libopenslide0"
+
+# Install multiple packages (space-separated)
+SYSTEM_PACKAGES="libopenslide0 libgdal-dev libproj-dev libopencv-dev"
+```
+
+**Common packages:**
+- `libopenslide0` - OpenSlide for whole slide imaging
+- `libgdal-dev` - GDAL for geospatial data
+- `libproj-dev` - PROJ for cartographic projections  
+- `libopencv-dev` - OpenCV for computer vision
+- `libfftw3-dev` - FFTW for fast Fourier transforms
+
+**Note:** Adding system packages requires rebuilding the Docker image (`docker rmi claude-docker:latest`).
 
 ## Requirements
 
