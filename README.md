@@ -33,7 +33,13 @@ ls ~/.claude.json ~/.claude/
 - **Docker Desktop**: https://docs.docker.com/get-docker/
 - Ensure Docker daemon is running before proceeding
 
-### 3. Twilio Account (Optional - for SMS notifications)
+### 3. Git Configuration (Required)
+For any git commits made inside the container, you'll need to provide:
+- Your name and email address
+- These will be configured in the `.env` file
+- Used for `git config --global user.name` and `git config --global user.email`
+
+### 4. Twilio Account (Optional - for SMS notifications)
 If you want SMS notifications when tasks complete:
 - Create free trial account: https://www.twilio.com/docs/usage/tutorials/how-to-use-your-free-trial-account
 - Get your Account SID and Auth Token from the Twilio Console
@@ -68,6 +74,10 @@ claude-docker
 ```bash
 # Required
 ANTHROPIC_API_KEY=your_anthropic_key
+
+# Required - Git configuration for commits
+GIT_USER_NAME=Your Name
+GIT_USER_EMAIL=your.email@example.com
 
 # Optional - SMS notifications
 TWILIO_ACCOUNT_SID=your_twilio_sid  
@@ -179,8 +189,7 @@ This workflow gives you:
 
 ### 🐳 Clean Environment
 - Each session runs in fresh Docker container
-- Container auto-removes on exit
-- No system pollution or conflicts
+- Only current working directory mounted (along with conda directories specified in `.env`).
 
 ## How It Works
 
@@ -194,7 +203,7 @@ This workflow gives you:
 
 ```
 claude-docker/
-├── Dockerfile              # Main container definition
+├── Dockerfile             # Main container definition
 ├── .env.example           # Template for environment variables
 ├── scripts/
 │   ├── claude-docker.sh   # Wrapper script for container
@@ -202,7 +211,7 @@ claude-docker/
 │   └── startup.sh         # Container startup script
 └── templates/
     └── .claude/
-        └── CLAUDE.md     # Claude behavior instructions
+        └── CLAUDE.md      # Claude behavior instructions
 ```
 
 ## Configuration
@@ -242,10 +251,10 @@ For custom conda installations (common in academic/lab environments), add these 
 
 ```bash
 # Main conda installation
-CONDA_PREFIX=/vol/biomedic3/username/miniconda3
+CONDA_PREFIX=/vol/lab/username/miniconda3
 
 # Additional conda directories (space-separated)
-CONDA_EXTRA_DIRS="/vol/biomedic3/username/.conda/envs /vol/biomedic3/username/conda_envs /vol/biomedic3/username/.conda/pkgs /vol/biomedic3/username/conda_pkgs"
+CONDA_EXTRA_DIRS="/vol/lab/username/.conda/envs /vol/lab/username/conda_envs /vol/lab/username/.conda/pkgs /vol/lab/username/conda_pkgs"
 ```
 
 **How it works:**
@@ -270,20 +279,8 @@ SYSTEM_PACKAGES="libopenslide0"
 SYSTEM_PACKAGES="libopenslide0 libgdal-dev libproj-dev libopencv-dev"
 ```
 
-**Common packages:**
-- `libopenslide0` - OpenSlide for whole slide imaging
-- `libgdal-dev` - GDAL for geospatial data
-- `libproj-dev` - PROJ for cartographic projections  
-- `libopencv-dev` - OpenCV for computer vision
-- `libfftw3-dev` - FFTW for fast Fourier transforms
-
 **Note:** Adding system packages requires rebuilding the Docker image (`docker rmi claude-docker:latest`).
 
-## Requirements
-
-- Docker installed and running
-- Anthropic API key (or Claude subscription)
-- (Optional) Twilio account with API Key/Secret for SMS notifications
 
 ## Next Steps
 

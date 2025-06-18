@@ -1,0 +1,13 @@
+Write a commit message for the changes in the following git diff:
+Follow the following instructions when writing the commit message:
+Subject line: Max 50 chars, imperative mood, capitalized, no period
+Skip a line between subject and body
+Body text: Wrap at 72 chars per line
+Explain what and why, not how
+Reference issue numbers when applicable
+Format: <type>(<scope>): <short summary>
+
+=== GIT DIFF SUMMARY FOR COMMIT ===
+
+
+=== END OF DIFF SUMMARY ===

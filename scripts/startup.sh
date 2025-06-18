@@ -34,6 +34,13 @@ else
     echo "No Twilio credentials found - SMS notifications disabled"
 fi
 
+# Configure git for the mounted workspace
+if [ -n "$GIT_USER_NAME" ] && [ -n "$GIT_USER_EMAIL" ]; then
+    echo "✓ Configuring git: $GIT_USER_NAME <$GIT_USER_EMAIL>"
+    git config --global user.name "$GIT_USER_NAME"
+    git config --global user.email "$GIT_USER_EMAIL"
+fi
+
 # Start Claude Code with permissions bypass
 echo "Starting Claude Code..."
 exec claude --dangerously-skip-permissions "$@"
