@@ -55,7 +55,13 @@ if [ "$NEED_REBUILD" = true ]; then
         cp -r "$HOME/.claude" "$PROJECT_ROOT/.claude"
     fi
     
-    docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t claude-docker:latest "$PROJECT_ROOT"
+    # Build docker command with conditional system packages
+    if [ -n "$SYSTEM_PACKAGES" ]; then
+        echo "✓ Building with additional system packages: $SYSTEM_PACKAGES"
+        docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) --build-arg SYSTEM_PACKAGES="$SYSTEM_PACKAGES" -t claude-docker:latest "$PROJECT_ROOT"
+    else
+        docker build --build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g) -t claude-docker:latest "$PROJECT_ROOT"
+    fi
     
     # Clean up copied auth files
     rm -f "$PROJECT_ROOT/.claude.json"
