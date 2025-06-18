@@ -58,11 +58,14 @@ COPY templates/.claude/CLAUDE.md /tmp/CLAUDE.md
 COPY .claude.json /tmp/.claude.json
 COPY .claude /tmp/.claude
 
-# Move auth files and CLAUDE.md to proper location before switching user
+# Move auth files to proper location before switching user
 RUN cp /tmp/.claude.json /home/claude-user/.claude.json && \
     cp -r /tmp/.claude/* /home/claude-user/.claude/ && \
-    cp /tmp/CLAUDE.md /home/claude-user/.claude/CLAUDE.md && \
-    rm -rf /tmp/.claude* /tmp/CLAUDE.md
+    rm -rf /tmp/.claude*
+
+# Copy CLAUDE.md template (after auth files to ensure it's not overwritten)
+RUN cp /tmp/CLAUDE.md /home/claude-user/.claude/CLAUDE.md && \
+    rm -f /tmp/CLAUDE.md
 
 # Set proper ownership for everything
 RUN chown -R claude-user:claude-user /app /home/claude-user
