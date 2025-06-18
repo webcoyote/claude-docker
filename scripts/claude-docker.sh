@@ -87,7 +87,7 @@ if [ -n "$CONDA_EXTRA_DIRS" ]; then
             echo "  - Mounting $dir"
             MOUNT_ARGS="$MOUNT_ARGS -v $dir:$dir:ro"
             # Build comma-separated list for CONDA_ENVS_DIRS
-            if [[ "$dir" == *"envs"* ]]; then
+            if [[ "$dir" == *"env"* ]]; then
                 if [ -z "$CONDA_ENVS_PATHS" ]; then
                     CONDA_ENVS_PATHS="$dir"
                 else
