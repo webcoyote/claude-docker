@@ -6,67 +6,114 @@ A Docker container setup for running Claude Code with full autonomous permission
 
 - Runs Claude Code in an isolated Docker container with full autonomy
 - Integrates Twilio MCP for SMS notifications when tasks complete
-- Provides persistent context across sessions via scratchpad files
+- Provides persistent context across sessions
 - Auto-configures Claude settings for seamless operation
 - Simple one-command setup and usage
 
 ## Prerequisites
 
-**Important**: Before building the Docker image, you must authenticate Claude Code on your host system:
-1. Install Claude Code: `npm install -g @anthropic-ai/claude-code`
-2. Run `claude` and complete the authentication flow
-3. Verify authentication files exist: `ls ~/.claude.json ~/.claude/`
+⚠️ **IMPORTANT**: Complete these steps BEFORE using claude-docker:
 
-The Docker build will copy your authentication from these locations.
+### 1. Claude Code Authentication (Required)
+You must authenticate Claude Code on your host system first:
+```bash
+# Install Claude Code globally
+npm install -g @anthropic-ai/claude-code
+
+# Run and complete authentication
+claude
+
+# Verify authentication files exist
+ls ~/.claude.json ~/.claude/
+```
+
+📖 **Full Claude Code Setup Guide**: https://docs.anthropic.com/en/docs/claude-code
+
+### 2. Docker Installation (Required)
+- **Docker Desktop**: https://docs.docker.com/get-docker/
+- Ensure Docker daemon is running before proceeding
+
+### 3. Twilio Account (Optional - for SMS notifications)
+If you want SMS notifications when tasks complete:
+- Create free trial account: https://www.twilio.com/docs/usage/tutorials/how-to-use-your-free-trial-account
+- Get your Account SID and Auth Token from the Twilio Console
+- Get a phone number for sending SMS
+
+### Why Pre-authentication?
+The Docker container needs your existing Claude authentication to function. This approach:
+- ✅ Uses your existing Claude subscription/API access
+- ✅ Maintains secure credential handling
+- ✅ Enables persistent authentication across container restarts
 
 ## Quick Start
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/VishalJ99/claude-docker.git
-   cd claude-docker
-   ```
+```bash
+# 1. Clone and enter directory
+git clone https://github.com/VishalJ99/claude-docker.git
+cd claude-docker
 
-2. **Configure your API keys:**
-   ```bash
-   # Copy the example file
-   cp .env.example .env
-   
-   # Edit .env with your credentials
-   nano .env
-   ```
-   
-   Add your credentials to the `.env` file:
-   ```bash
-   ANTHROPIC_API_KEY=your_anthropic_key
-   
-   # For Twilio MCP integration (optional):
-   TWILIO_ACCOUNT_SID=your_twilio_sid  
-   TWILIO_AUTH_TOKEN=your_twilio_auth_token
-   TWILIO_FROM_NUMBER=your_twilio_number
-   TWILIO_TO_NUMBER=your_phone_number
-   ```
-   
-   > **Important**: The `.env` file will be baked into the Docker image during build. This means:
-   > - Your credentials are embedded in the image
-   > - You can use the image from any directory without needing the .env file
-   > - Keep your image secure since it contains your credentials
-   
-   > **Note**: Twilio MCP uses Account SID and Auth Token. You can find these in your Twilio Console.
+# 2. Setup environment
+cp .env.example .env
+nano .env  # Add your API keys (see below)
 
-3. **Build and install:**
-   ```bash
-   ./scripts/install.sh
-   ```
-   
-   This will:
-   - Build the Docker image with your credentials baked in
-   - Install the `claude-docker` command to your PATH
+# 3. Install
+./scripts/install.sh
 
-4. **Use from any project directory:**
-   ```bash
-   claude-docker
-   ```
+# 4. Run from any project
+cd ~/your-project
+claude-docker
+```
+
+### Environment Variables (.env)
+```bash
+# Required
+ANTHROPIC_API_KEY=your_anthropic_key
+
+# Optional - SMS notifications
+TWILIO_ACCOUNT_SID=your_twilio_sid  
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_FROM_NUMBER=+1234567890
+TWILIO_TO_NUMBER=+0987654321
+
+# Optional - Custom conda paths
+CONDA_PREFIX=/path/to/your/conda
+CONDA_EXTRA_DIRS="/path/to/envs /path/to/pkgs"
+
+# Optional - System packages
+SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
+```
+
+⚠️ **Security Note**: Credentials are baked into the Docker image. Keep your image secure!
+
+## How This Differs from Anthropic's DevContainer
+
+We provide a different approach than [Anthropic's official .devcontainer](https://github.com/anthropics/claude-code/tree/main/.devcontainer):
+
+| Feature | claude-docker | Anthropic's DevContainer |
+|---------|--------------|-------------------------|
+| **IDE Integration** | Standalone - works with any editor | VSCode-specific |
+| **Authentication** | Persistent across all projects | Per-devcontainer |
+| **Security Model** | Full autonomy (dangerously-skip-permissions) | Restrictive firewall whitelist |
+| **Network Access** | Unrestricted | Limited to specific domains |
+| **Conda Support** | Full integration with custom paths | Standard Node.js environment |
+| **SMS Notifications** | Built-in Twilio MCP | Not included |
+| **Setup Complexity** | One-time install, works everywhere | Per-project configuration |
+| **Use Case** | Autonomous task execution | Secure development environment |
+
+### When to Use Each
+
+**Use claude-docker when you want:**
+- 🚀 Maximum autonomy and flexibility
+- 📱 SMS notifications for long-running tasks
+- 🐍 Integration with existing conda environments
+- 🔧 Quick setup without per-project configuration
+- 💻 Editor/IDE independence
+
+**Use Anthropic's DevContainer when you want:**
+- 🔒 Maximum security with network restrictions
+- 🆚 Deep VSCode integration
+- 🛡️ Controlled environment with explicit whitelisting
+- 👥 Team-standardized development environments
 
 ## Usage Patterns
 
@@ -120,7 +167,7 @@ This workflow gives you:
 - Works with environments and package caches in non-standard locations
 
 ### 🗂️ Context Persistence
-- Maintains scratchpad.md files for project memory
+- Maintains project-specific Claude configuration
 - Persistent across container sessions
 - Helps Claude remember project context
 
@@ -148,12 +195,14 @@ This workflow gives you:
 ```
 claude-docker/
 ├── Dockerfile              # Main container definition
+├── .env.example           # Template for environment variables
 ├── scripts/
 │   ├── claude-docker.sh   # Wrapper script for container
 │   ├── install.sh         # Installation script  
 │   └── startup.sh         # Container startup script
 └── templates/
-    └── scratchpad.md     # Template for project context
+    └── .claude/
+        └── CLAUDE.md     # Claude behavior instructions
 ```
 
 ## Configuration
@@ -170,7 +219,6 @@ The setup creates `~/.claude-docker/` in your home directory with:
 Each project gets:
 - `.claude/settings.json` - Claude Code settings with MCP
 - `.claude/CLAUDE.md` - Instructions for Claude behavior
-- `scratchpad.md` - Project context file
 
 ### Rebuilding the Image
 
@@ -244,6 +292,21 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev libproj-dev libopencv-dev"
 - Shell history persistence between sessions
 - Additional security features
 
-## Repository
+## Attribution & Dependencies
 
-https://github.com/VishalJ99/claude-docker
+### Core Dependencies
+- **Claude Code**: Anthropic's official CLI - https://github.com/anthropics/claude-code
+- **Twilio MCP Server**: SMS integration by @yiyang.1i - https://github.com/yiyang1i/sms-mcp-server
+- **Docker**: Container runtime - https://www.docker.com/
+
+### Inspiration & References
+- Anthropic's DevContainer implementation: https://github.com/anthropics/claude-code/tree/main/.devcontainer
+- MCP (Model Context Protocol): https://modelcontextprotocol.io/
+
+### Created By
+- **Repository**: https://github.com/VishalJ99/claude-docker
+- **Author**: Vishal J (@VishalJ99)
+
+## License
+
+This project is open source. See the LICENSE file for details.
