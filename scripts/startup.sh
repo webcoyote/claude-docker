@@ -29,13 +29,9 @@ fi
 
 # Verify Twilio MCP configuration
 if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then
-    echo "Twilio MCP server configured with:"
-    echo "  - Account SID: ${TWILIO_ACCOUNT_SID:0:10}..."
-    echo "  - From Number: $TWILIO_FROM_NUMBER"
-    echo "  - To Number: $TWILIO_TO_NUMBER"
-    echo "  - SMS capability ready via: twilio__send_text"
+    echo "✓ Twilio MCP server configured - SMS notifications enabled"
 else
-    echo "No Twilio credentials found"
+    echo "No Twilio credentials found - SMS notifications disabled"
 fi
 
 # Start Claude Code with permissions bypass
