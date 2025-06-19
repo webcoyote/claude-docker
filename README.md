@@ -138,17 +138,15 @@ For the best experience, run `claude-docker` once per project and leave it runni
 
 ### 🐍 Conda Integration
 - Has access to your conda envs so do not need to add build instructions to the Dockerfile
-- Supports custom conda installations (ideal for academic/lab environments)
-- Mounts conda directories to preserve original paths and configurations
+- Supports custom conda installation directories (ideal for academic/lab environments where home is quota'd)
+
 
 ### 🔑 Authentication Persistence
 - Login once, use forever - authentication tokens persist across sessions
-- No need to re-authenticate every time you start claude-docker
-- Credentials stored securely in `~/.claude-docker/claude-home`
 - Automatic UID/GID mapping ensures perfect file permissions between host and container
 
 ### 📝 Task Execution Logging  
-- Generates `task_log.md` documenting agent's execution process
+- Prompt engineered to generate `task_log.md` documenting agent's execution process
 - Stores assumptions, insights, and challenges encountered
 - Acts as a simple summary to quickly understand what the agent accomplished
 
