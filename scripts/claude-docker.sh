@@ -142,5 +142,5 @@ docker run -it --rm \
     $MOUNT_ARGS \
     $ENV_ARGS \
     --workdir /workspace \
-    --name claude-docker-session \
+    --name "claude-docker-$(basename "$CURRENT_DIR")-$$" \
     claude-docker:latest "$@"
