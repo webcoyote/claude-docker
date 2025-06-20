@@ -75,8 +75,47 @@ if [ "$NEED_REBUILD" = true ]; then
     rm -rf "$PROJECT_ROOT/.claude"
 fi
 
-# Ensure the claude-home directory exists
+# Ensure the claude-home and ssh directories exist
 mkdir -p "$HOME/.claude-docker/claude-home"
+mkdir -p "$HOME/.claude-docker/ssh"
+
+# Check SSH key setup
+SSH_KEY_PATH="$HOME/.claude-docker/ssh/id_rsa"
+SSH_PUB_KEY_PATH="$HOME/.claude-docker/ssh/id_rsa.pub"
+
+if [ ! -f "$SSH_KEY_PATH" ] || [ ! -f "$SSH_PUB_KEY_PATH" ]; then
+    echo ""
+    echo "⚠️  SSH keys not found for git operations"
+    echo "   To enable git push/pull in Claude Docker:"
+    echo ""
+    echo "   1. Generate SSH key:"
+    echo "      ssh-keygen -t rsa -b 4096 -f ~/.claude-docker/ssh/id_rsa -N ''"
+    echo ""
+    echo "   2. Add public key to GitHub:"
+    echo "      cat ~/.claude-docker/ssh/id_rsa.pub"
+    echo "      # Copy output and add to: GitHub → Settings → SSH Keys"
+    echo ""
+    echo "   3. Test connection:"
+    echo "      ssh -T git@github.com -i ~/.claude-docker/ssh/id_rsa"
+    echo ""
+    echo "   Claude will continue without SSH keys (read-only git operations only)"
+    echo ""
+else
+    echo "✓ SSH keys found for git operations"
+    
+    # Create SSH config if it doesn't exist
+    SSH_CONFIG_PATH="$HOME/.claude-docker/ssh/config"
+    if [ ! -f "$SSH_CONFIG_PATH" ]; then
+        cat > "$SSH_CONFIG_PATH" << 'EOF'
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_rsa
+    IdentitiesOnly yes
+EOF
+        echo "✓ SSH config created for GitHub"
+    fi
+fi
 
 # Prepare additional mount arguments
 MOUNT_ARGS=""
@@ -139,6 +178,7 @@ echo "Starting Claude Code in Docker..."
 docker run -it --rm \
     -v "$CURRENT_DIR:/workspace" \
     -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
+    -v "$HOME/.claude-docker/ssh:/home/claude-user/.ssh:rw" \
     $MOUNT_ARGS \
     $ENV_ARGS \
     --workdir /workspace \
