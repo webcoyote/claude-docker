@@ -163,56 +163,6 @@ For the best experience, run `claude-docker` once per project and leave it runni
 5. **Clean Exit**: Container removes itself when Claude session ends
 
 
-## How This Differs from Anthropic's DevContainer
-
-We provide a different approach than [Anthropic's official .devcontainer](https://github.com/anthropics/claude-code/tree/main/.devcontainer), optimized for autonomous task execution:
-
-### Key Advantages
-
-**🐍 Seamless Conda Integration**
-- **claude-docker**: Your existing conda environments work out-of-the-box - no setup needed per project
-- **Anthropic**: Requires environment setup in each DevContainer's Dockerfile
-
-**🧠 Custom Prompt Engineering**
-- **claude-docker**: Includes carefully engineered CLAUDE.md prompts for agentic task execution
-- **Anthropic**: Basic Claude Code functionality without task-specific optimization
-
-**🔑 One-Time Authentication**
-- **claude-docker**: Authenticate once, use forever across all projects
-- **Anthropic**: Re-authenticate for each new DevContainer
-
-**📱 Additional Features**
-- **claude-docker**: Built-in Twilio MCP for SMS notifications on task completion
-- **Anthropic**: No notification system included
-
-### Feature Comparison
-
-| Feature | claude-docker | Anthropic's DevContainer |
-|---------|--------------|-------------------------|
-| **IDE Support** | Any editor/IDE | VSCode-specific |
-| **Authentication** | Once per machine, persists forever | Per-devcontainer setup |
-| **Conda Environments** | Direct access to all host envs | Manual setup in Dockerfile |
-| **Prompt Engineering** | Optimized CLAUDE.md for tasks | Standard behavior |
-| **Network Access** | Full access (firewall coming soon) | Configurable firewall |
-| **SMS Notifications** | Built-in Twilio MCP | Not available |
-| **Permissions** | Auto (--dangerously-skip-permissions) | Auto (--dangerously-skip-permissions) |
-
-### When to Use Each
-
-**Use claude-docker for:**
-- 🚀 Autonomous task execution with optimized prompts
-- 🐍 Projects requiring conda environments without Docker setup
-- 📱 Long-running tasks with SMS completion notifications
-- 🔧 Quick start without per-project configuration
-- 💻 Non-VSCode development environments
-
-**Use Anthropic's DevContainer for:**
-- 🔒 Network-restricted environments (domain whitelisting)
-- 🆚 Teams standardizing on VSCode
-- 🛡️ Projects requiring strict network isolation today
-
-**Note**: Network firewall functionality similar to Anthropic's implementation is our next planned feature.
-
 ## Configuration
 
 During build, the `.env` file from the claude-docker directory is baked into the image:
@@ -279,7 +229,25 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev libproj-dev libopencv-dev"
 ```
 
 **Note:** Adding system packages requires rebuilding the Docker image (`docker rmi claude-docker:latest`).
+## How This Differs from Anthropic's DevContainer
 
+We provide a different approach than [Anthropic's official .devcontainer](https://github.com/anthropics/claude-code/tree/main/.devcontainer), optimized for autonomous task execution:
+
+
+### Feature Comparison
+
+| Feature | claude-docker | Anthropic's DevContainer |
+|---------|--------------|-------------------------|
+| **IDE Support** | Any editor/IDE | VSCode-specific |
+| **Authentication** | Once per machine, persists forever | Per-devcontainer setup |
+| **Conda Environments** | Direct access to all host envs | Manual setup in Dockerfile |
+| **Prompt Engineering** | Optimized CLAUDE.md for tasks | Standard behavior |
+| **Network Access** | Full access (firewall coming soon) | Configurable firewall |
+| **SMS Notifications** | Built-in Twilio MCP | Not available |
+| **Permissions** | Auto (--dangerously-skip-permissions) | Auto (--dangerously-skip-permissions) |
+
+
+**Note**: Network firewall functionality similar to Anthropic's implementation is our next planned feature.
 
 ## Next Steps
 

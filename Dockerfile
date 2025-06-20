@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv (Astral) for Serena MCP (todo make this modular.)
+# Note: Will be installed for claude-user after user creation
+
 # Install additional system packages if specified
 ARG SYSTEM_PACKAGES=""
 RUN if [ -n "$SYSTEM_PACKAGES" ]; then \
@@ -58,6 +61,11 @@ COPY templates/.claude/CLAUDE.md /home/claude-user/.claude/CLAUDE.md
 COPY .claude.json /tmp/.claude.json
 COPY .claude /tmp/.claude
 
+# Copy MCP server configuration files (as root)
+COPY mcp-servers.txt /app/
+COPY install-mcp-servers.sh /app/
+RUN chmod +x /app/install-mcp-servers.sh
+
 # Move auth files to proper location before switching user
 RUN cp /tmp/.claude.json /home/claude-user/.claude.json && \
     cp -r /tmp/.claude/* /home/claude-user/.claude/ && \
@@ -72,15 +80,14 @@ USER claude-user
 # Set HOME immediately after switching user
 ENV HOME=/home/claude-user
 
-# Configure MCP server during build if Twilio credentials are provided
-RUN bash -c 'source /app/.env && \
-    if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then \
-        echo "Configuring Twilio MCP server..." && \
-        /usr/local/bin/claude mcp add-json twilio -s user \
-        "{\"command\":\"npx\",\"args\":[\"-y\",\"@yiyang.1i/sms-mcp-server\"],\"env\":{\"ACCOUNT_SID\":\"$TWILIO_ACCOUNT_SID\",\"AUTH_TOKEN\":\"$TWILIO_AUTH_TOKEN\",\"FROM_NUMBER\":\"$TWILIO_FROM_NUMBER\"}}"; \
-    else \
-        echo "No Twilio credentials found, skipping MCP configuration"; \
-    fi'
+# Install uv (Astral) for claude-user
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Add claude-user's local bin to PATH
+ENV PATH="/home/claude-user/.local/bin:${PATH}"
+
+# Install MCP servers from configuration file
+RUN /app/install-mcp-servers.sh
 
 # Configure git user during build using host git config passed as build args
 ARG GIT_USER_NAME=""
