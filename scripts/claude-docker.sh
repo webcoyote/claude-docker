@@ -2,6 +2,28 @@
 # ABOUTME: Wrapper script to run Claude Code in Docker container
 # ABOUTME: Handles project mounting, .claude setup, and environment variables
 
+# Parse command line arguments
+NO_CACHE=""
+FORCE_REBUILD=false
+ARGS=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --no-cache)
+            NO_CACHE="--no-cache"
+            shift
+            ;;
+        --rebuild)
+            FORCE_REBUILD=true
+            shift
+            ;;
+        *)
+            ARGS+=("$1")
+            shift
+            ;;
+    esac
+done
+
 # Get the absolute path of the current directory
 CURRENT_DIR=$(pwd)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -45,6 +67,16 @@ if ! docker images | grep -q "claude-docker"; then
     NEED_REBUILD=true
 fi
 
+if [ "$FORCE_REBUILD" = true ]; then
+    echo "Forcing rebuild of Claude Docker image..."
+    NEED_REBUILD=true
+fi
+
+# Warn if --no-cache is used without rebuild
+if [ -n "$NO_CACHE" ] && [ "$NEED_REBUILD" = false ]; then
+    echo "⚠️  Warning: --no-cache flag set but image already exists. Use --rebuild --no-cache to force rebuild without cache."
+fi
+
 if [ "$NEED_REBUILD" = true ]; then
     # Copy authentication files to build context
     if [ -f "$HOME/.claude.json" ]; then
@@ -68,7 +100,7 @@ if [ "$NEED_REBUILD" = true ]; then
         BUILD_ARGS="$BUILD_ARGS --build-arg SYSTEM_PACKAGES=\"$SYSTEM_PACKAGES\""
     fi
     
-    eval "docker build $BUILD_ARGS -t claude-docker:latest \"$PROJECT_ROOT\""
+    eval "docker build $NO_CACHE $BUILD_ARGS -t claude-docker:latest \"$PROJECT_ROOT\""
     
     # Clean up copied auth files
     rm -f "$PROJECT_ROOT/.claude.json"
@@ -78,6 +110,13 @@ fi
 # Ensure the claude-home and ssh directories exist
 mkdir -p "$HOME/.claude-docker/claude-home"
 mkdir -p "$HOME/.claude-docker/ssh"
+
+# Log information about persistent Claude home directory
+echo ""
+echo "📁 Claude persistent home directory: ~/.claude-docker/claude-home/"
+echo "   This directory contains Claude's settings and CLAUDE.md instructions"
+echo "   Modify files here to customize Claude's behavior across all projects"
+echo ""
 
 # Check SSH key setup
 SSH_KEY_PATH="$HOME/.claude-docker/ssh/id_rsa"
@@ -183,4 +222,4 @@ docker run -it --rm \
     $ENV_ARGS \
     --workdir /workspace \
     --name "claude-docker-$(basename "$CURRENT_DIR")-$$" \
-    claude-docker:latest "$@"
+    claude-docker:latest "${ARGS[@]}"

@@ -212,9 +212,18 @@ The setup creates `~/.claude-docker/` in your home directory with:
 - `claude-home/` - Persistent Claude authentication and settings
 - `config/` - MCP server configuration
 
+### CLAUDE.md Configuration
+
+The `CLAUDE.md` file controls Claude's behavior and is managed as follows:
+
+1. **First Run**: If no CLAUDE.md exists at `~/.claude-docker/claude-home/CLAUDE.md`, the template from this repository is copied there
+2. **Subsequent Runs**: The existing CLAUDE.md at `~/.claude-docker/claude-home/CLAUDE.md` is used
+3. **Customization**: Edit `~/.claude-docker/claude-home/CLAUDE.md` to customize Claude's behavior across all projects
+4. **Reset to Template**: Delete `~/.claude-docker/claude-home/CLAUDE.md` and restart to get the latest template
+
 Each project gets:
 - `.claude/settings.json` - Claude Code settings with MCP
-- `.claude/CLAUDE.md` - Instructions for Claude behavior
+- `.claude/CLAUDE.md` - Project-specific instructions (if you create one)
 
 ### Rebuilding the Image
 

@@ -27,6 +27,23 @@ else
     echo "Your login will be saved for future sessions"
 fi
 
+# Handle CLAUDE.md template
+if [ ! -f "$HOME/.claude/CLAUDE.md" ]; then
+    echo "✓ No CLAUDE.md found at $HOME/.claude/CLAUDE.md - copying template"
+    # Copy from the template that was baked into the image
+    if [ -f "/app/templates/.claude/CLAUDE.md" ]; then
+        cp "/app/templates/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+    elif [ -f "/home/claude-user/.claude.template/CLAUDE.md" ]; then
+        # Fallback for existing images
+        cp "/home/claude-user/.claude.template/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+    fi
+    echo "  Template copied to: $HOME/.claude/CLAUDE.md"
+else
+    echo "✓ Using existing CLAUDE.md from $HOME/.claude/CLAUDE.md"
+    echo "  This maps to: ~/.claude-docker/claude-home/CLAUDE.md on your host"
+    echo "  To reset to template, delete this file and restart"
+fi
+
 # Verify Twilio MCP configuration
 if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then
     echo "✓ Twilio MCP server configured - SMS notifications enabled"
