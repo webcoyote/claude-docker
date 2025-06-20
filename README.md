@@ -1,6 +1,8 @@
 # Claude Docker
 
-A Docker container setup for running Claude Code with full autonomous permissions and SMS notifications via Twilio MCP integration.
+A Docker container setup for running Claude Code with full autonomous permissions, modular MCP server support, and SMS notifications.
+
+📋 **MCP Setup Guide**: See [MCP_SERVERS.md](MCP_SERVERS.md) for adding/managing MCP servers
 
 ### CLAUDE.md Configuration
 
@@ -130,6 +132,12 @@ For the best experience, run `claude-docker` once per project and leave it runni
 - Claude runs with `--dangerously-skip-permissions` for complete access
 - Can read, write, execute, and modify any files in your project
 - No permission prompts or restrictions
+
+### 🔌 Modular MCP Server Support
+- Easy installation of any MCP server through `mcp-servers.txt`
+- Automatic environment variable handling for MCP servers requiring API keys
+- Pre-configured popular servers (Twilio, GitHub, filesystem, browser automation)
+- See [MCP_SERVERS.md](MCP_SERVERS.md) for full setup guide
 
 ### 📱 SMS Notifications  
 - Automatic SMS via Twilio when Claude completes tasks
