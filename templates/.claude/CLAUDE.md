@@ -1,6 +1,9 @@
 # CORE EXECUTION PROTOCOL
 THESE RULES ARE ABSOLUTE AND APPLY AT ALL TIMES.
 
+**ON FIRST RESPONSE:**
+The first response to any user request MUST always say `claude md loaded` to confirm these contents are understood.
+
 ### 1. STARTUP PROCEDURE
 - **FIRST & ALWAYS**: Index the codebase using Serena MCP.
   `uvx --from git+https://github.com/oraios/serena index-project`
@@ -20,7 +23,23 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
 - **SKELETON FIRST**: Create a minimal, working script first. Refine ONLY after the skeleton is proven to work.
 - **USE `dotenv`** to load `.env` files when required.
 - **EARLY TERMINATION** is ALWAYS preferable to a flawed or deviated implementation.
--
+
+### 3A. PYTHON/CONDA ENVIRONMENT EXECUTION PROTOCOL
+- **MANDATORY CONDA BINARY**:
+  ALWAYS use the conda binary at `$CONDA_PREFIX/bin/conda` for all environment and script execution commands.
+
+- **SCRIPT EXECUTION FORMAT**:
+  ALWAYS execute Python scripts using the following format:
+  ```bash
+  ${CONDA_EXE:-conda} run --live-stream -n ENVIRONMENT_NAME python -u your_script.py [args]
+  /vol/biomedic3/vj724/miniconda3/bin/conda run --live-stream -n ENVIRONMENT_NAME python -u your_script.py [args]
+  ```
+  - Replace `ENVIRONMENT_NAME` with the target conda environment.
+  - Replace `your_script.py [args]` with the script and its arguments.
+
+- **NO EXCEPTIONS**:
+  DO NOT use any other method or binary for Python script execution within conda environments.
+  DO NOT omit the `--live-stream` or `-u` flags under any circumstances.
 
 ### 4. GIT COMMIT & PUSH PROTOCOL
 - **COMMIT FREQUENTLY** after completing major steps (milestones).
@@ -32,6 +51,7 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
 
 ### 5. LOGGING & COMMUNICATION PROTOCOL
 - **`task_log.md`**: UPDATE PROACTIVELY at every single checklist step. This is your primary on-disk communication channel. Create it if it does not exist.
+- **SEND USER TEXT AS CHECKLIST ITEM**: ALWAYS add 'Send user text' as an explicit checklist item to assure the user the text will be sent.
 - **TWILIO SMS IS THE PRIMARY "CALL-BACK" MECHANISM**:
     - **SEND A TEXT AT THE END OF EVERY CHECKLIST**: A checklist represents a significant task. A text signals that this task is complete and your attention is needed.
     - **WHEN TO SEND**:
