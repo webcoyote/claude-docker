@@ -49,7 +49,34 @@ Git configuration is automatically loaded from your host system during Docker bu
   ```
 - **Important**: Claude Docker will commit to your current branch - make sure you're on the correct branch before starting
 
-### 4. Twilio Account (Optional - for SMS notifications)
+### 4. SSH Keys for Git Push (Optional - for push/pull operations)
+Claude Docker uses dedicated SSH keys (separate from your main SSH keys for security):
+
+**Setup SSH keys:**
+```bash
+# 1. Create directory for Claude Docker SSH keys
+mkdir -p ~/.claude-docker/ssh
+
+# 2. Generate SSH key for Claude Docker
+ssh-keygen -t rsa -b 4096 -f ~/.claude-docker/ssh/id_rsa -N ''
+
+# 3. Add public key to GitHub
+cat ~/.claude-docker/ssh/id_rsa.pub
+# Copy output and add to: GitHub → Settings → SSH and GPG keys → New SSH key
+
+# 4. Test connection
+ssh -T git@github.com -i ~/.claude-docker/ssh/id_rsa
+```
+
+**Why separate SSH keys?**
+- ✅ **Security Isolation**: Claude can't access or modify your personal SSH keys, config, or known_hosts
+- ✅ **SSH State Persistence**: The SSH directory is mounted (not copied) so that SSH state files like `known_hosts` persist between sessions - without this, you'd get host key verification prompts every time
+- ✅ **Easy Revocation**: Delete `~/.claude-docker/ssh/` to instantly revoke Claude's git access
+- ✅ **Clean Audit Trail**: All Claude SSH activity is isolated and easily traceable
+
+**Technical Note**: We mount the SSH directory rather than copying keys because SSH operations modify several files (`known_hosts`, connection state) that must persist between container sessions for a smooth user experience.
+
+### 5. Twilio Account (Optional - for SMS notifications)
 If you want SMS notifications when tasks complete:
 - Create free trial account: https://www.twilio.com/docs/usage/tutorials/how-to-use-your-free-trial-account
 - Get your Account SID and Auth Token from the Twilio Console
@@ -78,6 +105,9 @@ nano .env  # Add your API keys (see below)
 # 4. Run from any project
 cd ~/your-project
 claude-docker
+
+# Optional: Set up SSH keys for git push (see Prerequisites section)
+# The script will show setup instructions if keys are missing
 ```
 
 ### Environment Variables (.env)
