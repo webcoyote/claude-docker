@@ -5,6 +5,7 @@
 # Parse command line arguments
 NO_CACHE=""
 FORCE_REBUILD=false
+CONTINUE_FLAG=""
 ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -15,6 +16,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --rebuild)
             FORCE_REBUILD=true
+            shift
+            ;;
+        --continue)
+            CONTINUE_FLAG="--continue"
             shift
             ;;
         *)
@@ -104,7 +109,13 @@ if [ "$NEED_REBUILD" = true ]; then
     
     # Clean up copied auth files
     rm -f "$PROJECT_ROOT/.claude.json"
-    rm -rf "$PROJECT_ROOT/.claude"
+    # Only remove sensitive files from .claude, not the entire directory
+    rm -f "$PROJECT_ROOT/.claude/.credentials.json"
+    rm -f "$PROJECT_ROOT/.claude/__store.db"
+    rm -rf "$PROJECT_ROOT/.claude/projects"
+    rm -rf "$PROJECT_ROOT/.claude/statsig"
+    rm -rf "$PROJECT_ROOT/.claude/todos"
+    rm -rf "$PROJECT_ROOT/.claude/ide"
 fi
 
 # Ensure the claude-home and ssh directories exist
@@ -220,6 +231,7 @@ docker run -it --rm \
     -v "$HOME/.claude-docker/ssh:/home/claude-user/.ssh:rw" \
     $MOUNT_ARGS \
     $ENV_ARGS \
+    -e CLAUDE_CONTINUE_FLAG="$CONTINUE_FLAG" \
     --workdir /workspace \
     --name "claude-docker-$(basename "$CURRENT_DIR")-$$" \
     claude-docker:latest "${ARGS[@]}"
