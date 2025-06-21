@@ -20,15 +20,20 @@ To add a new MCP server:
 
 ### Simple MCP Servers (No Environment Variables)
 
+⚠️ **IMPORTANT**: Always use `-s user` flag to make MCPs available across all projects!
+
 Add a line like this to `mcp-servers.txt`:
 ```bash
-claude mcp add <name> -- <command> <args>
+claude mcp add -s user <name> -- <command> <args>
 ```
 
 Example:
 ```bash
-claude mcp add filesystem -- npx -y @modelcontextprotocol/server-filesystem
+claude mcp add -s user filesystem -- npx -y @modelcontextprotocol/server-filesystem
 ```
+
+**Without `-s user`**: MCP will only be available in the Docker build directory (`/app`)
+**With `-s user`**: MCP will be available in any project directory (`/workspace`, etc.)
 
 ### MCP Servers with Environment Variables
 
@@ -67,16 +72,16 @@ ANTHROPIC_API_KEY=your_key_here
 
 ```bash
 # Filesystem access
-claude mcp add filesystem -- npx -y @modelcontextprotocol/server-filesystem
+claude mcp add -s user filesystem -- npx -y @modelcontextprotocol/server-filesystem
 
 # GitHub integration
 claude mcp add-json github -s user '{"command":"npx","args":["-y","@modelcontextprotocol/server-github"],"env":{"GITHUB_TOKEN":"${GITHUB_TOKEN}"}}'
 
 # Browser automation
-claude mcp add browser -- npx -y @modelcontextprotocol/server-browser
+claude mcp add -s user browser -- npx -y @modelcontextprotocol/server-browser
 
 # Memory/knowledge base
-claude mcp add memory -- npx -y @modelcontextprotocol/server-memory
+claude mcp add -s user memory -- npx -y @modelcontextprotocol/server-memory
 
 # PostgreSQL database
 claude mcp add-json postgres -s user '{"command":"npx","args":["-y","@modelcontextprotocol/server-postgres"],"env":{"POSTGRES_URL":"${DATABASE_URL}"}}'

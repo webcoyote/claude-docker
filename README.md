@@ -8,10 +8,9 @@ A Docker container setup for running Claude Code with full autonomous permission
 
 This codebase includes a custom `CLAUDE.md` template that configures Claude as an autonomous task executor. Located at `/templates/.claude/CLAUDE.md`, this file provides detailed instructions for how Claude should behave when executing tasks.
 
-**Default Design:** The claude-docker agent expects a detailed `plan.md` file in your project root containing task specifications and which conda env to use. Claude will read this plan and execute it as faithfully as possible, documenting progress in `task_log.md`, send a text on completion if you set up your twilio credentials (optional). Simply tell it to make sure it has read the user scope claude md file and to execute. 
-
 ## What This Does
 - Runs Claude Code in an isolated Docker container with full autonomy.
+- **Persistent conversation history** - Resumes from where you left off, even after crashes.
 - Integrates Twilio MCP for SMS notifications when tasks complete.
 - Simple one-command setup and usage.
 - Integrates existing conda environments to avoid custom env instructions in the Dockerfile.
@@ -129,6 +128,14 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 ⚠️ **Security Note**: Credentials are baked into the Docker image. Keep your image secure!
 
 ## Usage Patterns
+
+### Persistent History & Crash Recovery
+Claude Docker automatically preserves conversation history and resumes from interruptions:
+
+- **History Location**: `~/.claude-docker/claude-home/` on your host machine
+- **Automatic Resume**: Uses `--continue` flag to resume conversations after crashes
+- **Cross-Session Persistence**: History persists between Docker container restarts
+- **Crash Recovery**: If Claude crashes or gets interrupted, simply restart - it will continue where it left off
 
 ### One-Time Setup Per Project
 For the best experience, run `claude-docker` once per project and leave it running:
