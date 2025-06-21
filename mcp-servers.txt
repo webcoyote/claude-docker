@@ -6,7 +6,7 @@
 # Serena - Coding agent toolkit
 claude mcp add -s user serena -- uvx --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant
 
-# Upstash Context - Memory and context management
+# Context7 - Up-to-date documentation and code examples from source
 claude mcp add -s user --transport sse context7 https://mcp.context7.com/sse
 
 # Twilio SMS - Send SMS messages (requires env vars)

@@ -64,9 +64,9 @@ ANTHROPIC_API_KEY=your_key_here
 
 ## Currently Installed MCP Servers
 
-- **Serena** - Powerful coding agent toolkit
-- **Upstash Context** - Memory and context management
-- **Twilio** - SMS messaging (requires TWILIO_* env vars)
+- **Serena** - Powerful coding agent toolkit with project indexing and symbol manipulation
+- **Context7** - Pulls up-to-date, version-specific documentation and code examples straight from the source into your prompt
+- **Twilio** - SMS messaging for task completion notifications (requires TWILIO_* env vars)
 
 ## Examples of Popular MCP Servers
 

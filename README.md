@@ -20,7 +20,7 @@ This is a complete starter pack for autonomous AI development. The included `CLA
 - **Complete AI coding agent setup** with Claude Code in an isolated Docker container
 - **Pre-configured MCP servers** for maximum coding productivity:
   - **Serena** - Advanced coding agent toolkit with project indexing and symbol manipulation
-  - **Context7** - Intelligent memory and context management across conversations  
+  - **Context7** - Pulls up-to-date, version-specific documentation and code examples straight from the source into your prompt
   - **Twilio** - SMS notifications when long-running tasks complete (perfect for >10min jobs)
 - **Persistent conversation history** - Resumes from where you left off, even after crashes
 - **Custom CLAUDE.md template** - Configures Claude as an autonomous task executor with SMS notifications
