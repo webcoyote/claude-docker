@@ -49,15 +49,15 @@ RUN mkdir -p /app/.claude /home/claude-user/.claude
 COPY scripts/startup.sh /app/
 RUN chmod +x /app/startup.sh
 
-# Copy templates directory for runtime use
-COPY templates /app/templates
+# Copy .claude directory for runtime use
+COPY .claude /app/.claude
 
 # Copy .env file during build to bake credentials into the image
 # This enables one-time setup - no need for .env in project directories
 COPY .env /app/.env
 
 # Copy CLAUDE.md template directly to final location
-COPY templates/.claude/CLAUDE.md /home/claude-user/.claude/CLAUDE.md
+COPY .claude/CLAUDE.md /home/claude-user/.claude/CLAUDE.md
 
 # Copy Claude authentication files from host
 # Note: These must exist - host must have authenticated Claude Code first

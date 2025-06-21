@@ -32,8 +32,8 @@ fi
 if [ ! -f "$HOME/.claude/CLAUDE.md" ]; then
     echo "✓ No CLAUDE.md found at $HOME/.claude/CLAUDE.md - copying template"
     # Copy from the template that was baked into the image
-    if [ -f "/app/templates/.claude/CLAUDE.md" ]; then
-        cp "/app/templates/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
+    if [ -f "/app/.claude/CLAUDE.md" ]; then
+        cp "/app/.claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
     elif [ -f "/home/claude-user/.claude.template/CLAUDE.md" ]; then
         # Fallback for existing images
         cp "/home/claude-user/.claude.template/CLAUDE.md" "$HOME/.claude/CLAUDE.md"

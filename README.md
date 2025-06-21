@@ -26,7 +26,7 @@ The included `CLAUDE.md` template configures Claude with:
 - **Git commit and push workflows** with milestone tracking
 - **Guardrails** that protect against error handling (slightly counterintuitive but letting cc do error handling actually reduces readability + increases silent failures), task simplification, and fallback behaviors.
 
-**Fully customizable** - Modify the template at `/templates/.claude/CLAUDE.md` to suit your workflow!
+**Fully customizable** - Modify the template at `.claude/CLAUDE.md` to suit your workflow!
 
 ## Quick Start
 

@@ -35,11 +35,11 @@ if [ ! -d "$CURRENT_DIR/.claude" ]; then
     mkdir -p "$CURRENT_DIR/.claude"
     
     # Copy template files
-    cp "$PROJECT_ROOT/templates/.claude/CLAUDE.md" "$CURRENT_DIR/.claude/"
+    cp "$PROJECT_ROOT/.claude/CLAUDE.md" "$CURRENT_DIR/.claude/"
     
     # Create scratchpad.md if it doesn't exist
     if [ ! -f "$CURRENT_DIR/scratchpad.md" ]; then
-        cp "$PROJECT_ROOT/templates/scratchpad.md" "$CURRENT_DIR/"
+        cp "$PROJECT_ROOT/.claude/scratchpad.md" "$CURRENT_DIR/"
     fi
     
     echo "✓ Claude configuration created"
