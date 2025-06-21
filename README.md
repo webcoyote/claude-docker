@@ -172,22 +172,28 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 
 
 ## Configuration
-During build, the `.env` file from the claude-docker directory is baked into the image:
+During build, the `.env` file from the claude-docker repository directory is baked into the image:
 - Credentials are embedded at `/app/.env` inside the container
 - No need to manage .env files in each project
 - The image contains everything needed to run
+- **Important**: After updating `.env`, you must rebuild the image with `claude-docker --rebuild`
 
 The setup creates `~/.claude-docker/` in your home directory with:
 - `claude-home/` - Persistent Claude authentication and settings
 - `ssh/` - Directory where claude-dockers private ssh key and known hosts file is stored.
 
-### CLAUDE.md Configuration
-The `CLAUDE.md` file controls Claude's behavior and is managed as follows:
+### Template Configuration Copy
+During installation (`install.sh`), all contents from the project's `.claude/` directory are copied to `~/.claude-docker/claude-home/` as template/base settings. This includes:
+- `settings.json` - Default Claude Code settings with MCP configuration
+- `CLAUDE.md` - Default instructions and protocols  
+- `commands/` - Slash commands (if any)
+- Any other configuration files
 
-1. **First Run**: If no CLAUDE.md exists at `~/.claude-docker/claude-home/CLAUDE.md`, the template from this repository is copied there
-2. **Subsequent Runs**: The existing CLAUDE.md at `~/.claude-docker/claude-home/CLAUDE.md` is used
-3. **Customization**: Edit `~/.claude-docker/claude-home/CLAUDE.md` to customize Claude's behavior across all projects
-4. **Reset to Template**: Delete `~/.claude-docker/claude-home/CLAUDE.md` and restart to get the latest template
+**To modify these settings:**
+- **Recommended**: Directly edit files in `~/.claude-docker/claude-home/`
+- **Alternative**: Modify `.claude/` in this repository and re-run `install.sh`
+
+All changes to `~/.claude-docker/claude-home/` persist across container sessions.
 
 Each project gets:
 - `.claude/settings.json` - Claude Code settings with MCP

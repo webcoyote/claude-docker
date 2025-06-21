@@ -27,9 +27,6 @@ data/
 *.temp
 ~*
 
-# Claude authentication files (copied during build)
-.claude.json
-.claude/
 
 # Environment file with credentials
 .env

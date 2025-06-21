@@ -71,7 +71,7 @@ if [ -f "$ENV_FILE" ]; then
 else
     echo "⚠️  No .env file found at $ENV_FILE"
     echo "   Twilio MCP features will be unavailable."
-    echo "   To enable: create .env in claude-docker directory with your credentials"
+    echo "   To enable: copy .env.example to .env in the claude-docker repository and add your credentials"
 fi
 
 # Use environment variables as defaults if command line args not provided
@@ -108,9 +108,6 @@ if [ "$NEED_REBUILD" = true ]; then
     if [ -f "$HOME/.claude.json" ]; then
         cp "$HOME/.claude.json" "$PROJECT_ROOT/.claude.json"
     fi
-    if [ -d "$HOME/.claude" ]; then
-        cp -r "$HOME/.claude" "$PROJECT_ROOT/.claude"
-    fi
     
     # Get git config from host
     GIT_USER_NAME=$(git config --global --get user.name 2>/dev/null || echo "")
@@ -130,13 +127,6 @@ if [ "$NEED_REBUILD" = true ]; then
     
     # Clean up copied auth files
     rm -f "$PROJECT_ROOT/.claude.json"
-    # Only remove sensitive files from .claude, not the entire directory
-    rm -f "$PROJECT_ROOT/.claude/.credentials.json"
-    rm -f "$PROJECT_ROOT/.claude/__store.db"
-    rm -rf "$PROJECT_ROOT/.claude/projects"
-    rm -rf "$PROJECT_ROOT/.claude/statsig"
-    rm -rf "$PROJECT_ROOT/.claude/todos"
-    rm -rf "$PROJECT_ROOT/.claude/ide"
 fi
 
 # Ensure the claude-home and ssh directories exist

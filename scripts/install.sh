@@ -1,6 +1,7 @@
 #!/bin/bash
 # ABOUTME: Installation script for claude-docker
-# ABOUTME: Creates claude-docker directory at home, copies .env.example to .env, adds alias to .zshrc, makes scripts executable.
+# ABOUTME: Creates claude-docker/claude-home directory at home, copies .env.example to .env,
+# ABOUTME: adds claude-docker alias to .zshrc, makes scripts executable.
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -8,10 +9,14 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Create claude persistence directory
 mkdir -p "$HOME/.claude-docker/claude-home"
 
+# Copy template .claude contents to persistent directory
+echo "✓ Copying template Claude configuration to persistent directory"
+cp -r "$PROJECT_ROOT/.claude/"* "$HOME/.claude-docker/claude-home/"
+
 # Copy example env file if doesn't exist
-if [ ! -f "$HOME/.claude-docker/.env" ]; then
-    cp "$PROJECT_ROOT/.env.example" "$HOME/.claude-docker/.env"
-    echo "⚠️  Created .env file at $HOME/.claude-docker/.env"
+if [ ! -f "$PROJECT_ROOT/.env" ]; then
+    cp "$PROJECT_ROOT/.env.example" "$PROJECT_ROOT/.env"
+    echo "⚠️  Created .env file at $PROJECT_ROOT/.env"
     echo "   Please edit it with your API keys!"
 fi
 
@@ -35,7 +40,7 @@ echo ""
 echo "Installation complete! 🎉"
 echo ""
 echo "Next steps:"
-echo "1. (Optional) Edit $HOME/.claude-docker/.env with your API keys"
+echo "1. (Optional) Edit $PROJECT_ROOT/.env with your API keys"
 echo "2. Run 'source ~/.zshrc' or start a new terminal"
 echo "3. Navigate to any project and run 'claude-docker' to start"
 echo "4. If no API key, Claude will prompt for interactive authentication"

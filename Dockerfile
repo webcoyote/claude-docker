@@ -62,7 +62,6 @@ COPY .claude/CLAUDE.md /home/claude-user/.claude/CLAUDE.md
 # Copy Claude authentication files from host
 # Note: These must exist - host must have authenticated Claude Code first
 COPY .claude.json /tmp/.claude.json
-COPY .claude /tmp/.claude
 
 # Copy MCP server configuration files (as root)
 COPY mcp-servers.txt /app/
@@ -71,8 +70,7 @@ RUN chmod +x /app/install-mcp-servers.sh
 
 # Move auth files to proper location before switching user
 RUN cp /tmp/.claude.json /home/claude-user/.claude.json && \
-    cp -r /tmp/.claude/* /home/claude-user/.claude/ && \
-    rm -rf /tmp/.claude*
+    rm -f /tmp/.claude.json
 
 # Set proper ownership for everything
 RUN chown -R claude-user:claude-user /app /home/claude-user
