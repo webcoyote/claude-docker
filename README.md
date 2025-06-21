@@ -23,7 +23,7 @@ This is a complete starter pack for autonomous AI development. The included `CLA
   - **Context7** - Pulls up-to-date, version-specific documentation and code examples straight from the source into your prompt
   - **Twilio** - SMS notifications when long-running tasks complete (perfect for >10min jobs)
 - **Persistent conversation history** - Resumes from where you left off, even after crashes
-- **Custom CLAUDE.md template** - Configures Claude as an autonomous task executor with SMS notifications
+- **Custom CLAUDE.md template** - Prompt engineering that prevents excessive error handling, task simplification, and fallback behaviors
 - **Remote work notifications** - Get pinged via SMS when tasks finish, so you can step away from your monitor
 - Simple one-command setup and usage
 - Integrates existing conda environments seamlessly
