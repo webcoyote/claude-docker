@@ -29,6 +29,30 @@ This is a complete starter pack for autonomous AI development. The included `CLA
 - Integrates existing conda environments seamlessly
 - Documents work in `task_log.md` for full traceability
 
+## Quick Start
+
+```bash
+# 0. Assumes you claude-code and docker already installed.
+
+# 1. Clone and enter directory
+git clone https://github.com/VishalJ99/claude-docker.git
+cd claude-docker
+
+# 2. Setup environment
+cp .env.example .env
+nano .env  # Add your API keys (see below)
+
+# 3. Install
+./scripts/install.sh
+
+# 4. Run from any project
+cd ~/your-project
+claude-docker
+
+# Optional: Set up SSH keys for git push (see Prerequisites section)
+# The script will show setup instructions if keys are missing
+```
+
 ## Prerequisites
 
 ⚠️ **IMPORTANT**: Complete these steps BEFORE using claude-docker:
@@ -100,27 +124,6 @@ The Docker container needs your existing Claude authentication to function. This
 - ✅ Maintains secure credential handling
 - ✅ Enables persistent authentication across container restarts
 
-## Quick Start
-
-```bash
-# 1. Clone and enter directory
-git clone https://github.com/VishalJ99/claude-docker.git
-cd claude-docker
-
-# 2. Setup environment
-cp .env.example .env
-nano .env  # Add your API keys (see below)
-
-# 3. Install
-./scripts/install.sh
-
-# 4. Run from any project
-cd ~/your-project
-claude-docker
-
-# Optional: Set up SSH keys for git push (see Prerequisites section)
-# The script will show setup instructions if keys are missing
-```
 
 ### Environment Variables (.env)
 ```bash
@@ -140,42 +143,6 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 ```
 
 ⚠️ **Security Note**: Credentials are baked into the Docker image. Keep your image secure!
-
-## Usage Patterns
-
-### Persistent History & Crash Recovery
-Claude Docker automatically preserves conversation history and resumes from interruptions:
-
-- **History Location**: `~/.claude-docker/claude-home/` on your host machine
-- **Automatic Resume**: Uses `--continue` flag to resume conversations after crashes
-- **Cross-Session Persistence**: History persists between Docker container restarts
-- **Crash Recovery**: If Claude crashes or gets interrupted, simply restart - it will continue where it left off
-
-### One-Time Setup Per Project
-For the best experience, run `claude-docker` once per project and leave it running:
-
-1. **Start Claude Docker:**
-   ```bash
-   cd your-project
-   claude-docker
-   ```
-
-2. **Detach from the session (keep it running):**
-   - **Mac/Linux**: `Ctrl + P`, then `Ctrl + Q`
-   - Hold Control key, press P, then Q while still holding Control
-   - Container keeps running in background
-
-3. **Reattach when needed:**
-   ```bash
-   docker ps                           # Find your container ID
-   docker attach claude-docker-session # Reattach to the session
-   ```
-
-4. **Stop when done with project:**
-   ```bash
-   docker stop claude-docker-session
-   ```
-
 
 ## Features
 
@@ -200,9 +167,10 @@ For the best experience, run `claude-docker` once per project and leave it runni
 - Supports custom conda installation directories (ideal for academic/lab environments where home is quota'd)
 
 
-### 🔑 Authentication Persistence
+### 🔑 Persistence
 - Login once, use forever - authentication tokens persist across sessions
 - Automatic UID/GID mapping ensures perfect file permissions between host and container
+- Loads history from previous chats in a given project.
 
 ### 📝 Task Execution Logging  
 - Prompt engineered to generate `task_log.md` documenting agent's execution process
@@ -212,14 +180,6 @@ For the best experience, run `claude-docker` once per project and leave it runni
 ### 🐳 Clean Environment
 - Each session runs in fresh Docker container
 - Only current working directory mounted (along with conda directories specified in `.env`).
-
-## How It Works
-
-1. **Wrapper Script**: `claude-docker.sh` handles container lifecycle
-2. **Auto-Setup**: Creates `.claude` directory with proper config on first run
-3. **MCP Integration**: Twilio MCP server runs alongside Claude Code
-4. **Project Mounting**: Your project directory mounts to `/workspace`
-5. **Clean Exit**: Container removes itself when Claude session ends
 
 
 ## Configuration
@@ -231,7 +191,7 @@ During build, the `.env` file from the claude-docker directory is baked into the
 
 The setup creates `~/.claude-docker/` in your home directory with:
 - `claude-home/` - Persistent Claude authentication and settings
-- `config/` - MCP server configuration
+- `ssh/` - Directory where claude-dockers private ssh key and known hosts file is stored.
 
 ### CLAUDE.md Configuration
 
