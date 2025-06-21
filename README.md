@@ -1,20 +1,33 @@
 # Claude Docker
 
-A Docker container setup for running Claude Code with full autonomous permissions, modular MCP server support, and SMS notifications.
+A complete AI coding agent starter pack with Claude Code, pre-configured with essential MCP servers for a powerful autonomous development experience.
 
-📋 **MCP Setup Guide**: See [MCP_SERVERS.md](MCP_SERVERS.md) for adding/managing MCP servers
+📋 **MCP Setup Guide**: See [MCP_SERVERS.md](MCP_SERVERS.md) for customizing or adding more MCP servers
 
-### CLAUDE.md Configuration
+## 🚀 AI Coding Agent Starter Pack
 
-This codebase includes a custom `CLAUDE.md` template that configures Claude as an autonomous task executor. Located at `/templates/.claude/CLAUDE.md`, this file provides detailed instructions for how Claude should behave when executing tasks.
+This is a complete starter pack for autonomous AI development. The included `CLAUDE.md` template configures Claude with:
+
+- **Autonomous task execution** with surgical code edits and minimal error handling
+- **Automatic SMS notifications** when tasks complete (great for long-running jobs)
+- **Conda environment integration** with proper execution protocols
+- **Git commit and push workflows** with milestone tracking
+- **Task logging** in `task_log.md` for full transparency
+
+**Fully customizable** - Modify the template at `/templates/.claude/CLAUDE.md` to suit your workflow!
 
 ## What This Does
-- Runs Claude Code in an isolated Docker container with full autonomy.
-- **Persistent conversation history** - Resumes from where you left off, even after crashes.
-- Integrates Twilio MCP for SMS notifications when tasks complete.
-- Simple one-command setup and usage.
-- Integrates existing conda environments to avoid custom env instructions in the Dockerfile.
-- Documents work in a file `task_log.md`.
+- **Complete AI coding agent setup** with Claude Code in an isolated Docker container
+- **Pre-configured MCP servers** for maximum coding productivity:
+  - **Serena** - Advanced coding agent toolkit with project indexing and symbol manipulation
+  - **Context7** - Intelligent memory and context management across conversations  
+  - **Twilio** - SMS notifications when long-running tasks complete (perfect for >10min jobs)
+- **Persistent conversation history** - Resumes from where you left off, even after crashes
+- **Custom CLAUDE.md template** - Configures Claude as an autonomous task executor with SMS notifications
+- **Remote work notifications** - Get pinged via SMS when tasks finish, so you can step away from your monitor
+- Simple one-command setup and usage
+- Integrates existing conda environments seamlessly
+- Documents work in `task_log.md` for full traceability
 
 ## Prerequisites
 
@@ -111,7 +124,8 @@ claude-docker
 
 ### Environment Variables (.env)
 ```bash
-# Optional - SMS notifications
+# SMS notifications (highly recommended!)
+# Perfect for long-running tasks - step away and get notified when done
 TWILIO_ACCOUNT_SID=your_twilio_sid  
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_FROM_NUMBER=+1234567890
