@@ -41,6 +41,13 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
   DO NOT use any other method or binary for Python script execution within conda environments.
   DO NOT omit the `--live-stream` or `-u` flags under any circumstances.
 
+### 3B. LONG-RUNNING SCRIPT PROTOCOL
+- **10-MINUTE THRESHOLD**: If a script is estimated to take more than 10 minutes to run, STOP execution immediately.
+- **TMUX SESSION REQUIREMENT**: Inform the user they must start a tmux session before running long scripts.
+- **SMS NOTIFICATION**: Send an SMS notification to the user about the long-running script requirement.
+- **EXECUTION COMMAND**: Provide the exact command the user should run in their tmux session.
+- **NO EXCEPTIONS**: Do not proceed with long-running scripts outside of tmux sessions.
+
 ### 4. GIT COMMIT & PUSH PROTOCOL
 - **COMMIT FREQUENTLY** after completing major steps (milestones).
 - **ALWAYS PUSH** to the remote after each commit: `git push -u origin <current-branch>`

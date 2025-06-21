@@ -1,6 +1,7 @@
 #!/bin/bash
-# ABOUTME: Startup script for Claude Code container with MCP server
-# ABOUTME: Loads environment and starts Claude Code with pre-configured Twilio MCP
+# ABOUTME: Startup script for claude-docker container with MCP server
+# ABOUTME: Loads twilio env vars, checks for .credentials.json, copies CLAUDE.md template if no claude.md in claude-docker/claude-home.
+# ABOUTME: Starts claude code with permissions bypass and continues from last session.
 
 # Load environment variables from .env if it exists
 # Use the .env file baked into the image at build time
@@ -51,8 +52,6 @@ else
     echo "No Twilio credentials found - SMS notifications disabled"
 fi
 
-# Git configuration is handled during Docker build from host git config
-
 # Start Claude Code with permissions bypass
 echo "Starting Claude Code..."
-exec claude --dangerously-skip-permissions "$@"
+exec claude --continue --dangerously-skip-permissions "$@"

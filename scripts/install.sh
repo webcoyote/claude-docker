@@ -1,12 +1,11 @@
 #!/bin/bash
 # ABOUTME: Installation script for claude-docker
-# ABOUTME: Sets up alias and creates config directory
+# ABOUTME: Creates claude-docker directory at home, copies .env.example to .env, adds alias to .zshrc, makes scripts executable.
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Create config directory and claude persistence directory
-mkdir -p "$HOME/.claude-docker/config"
+# Create claude persistence directory
 mkdir -p "$HOME/.claude-docker/claude-home"
 
 # Copy example env file if doesn't exist

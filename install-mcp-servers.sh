@@ -48,12 +48,28 @@ while IFS= read -r line; do
     fi
     
     # Substitute environment variables
-    # This uses envsubst if available, otherwise falls back to shell expansion
-    if command -v envsubst >/dev/null 2>&1; then
-        expanded_line=$(echo "$line" | envsubst)
+    # Special handling for add-json commands to preserve JSON quotes
+    if [[ "$line" =~ "add-json" ]]; then
+        # Use sed to replace variables while preserving JSON structure
+        expanded_line="$line"
+        # Replace known environment variables
+        # Extract all ${VAR} patterns from the line
+        vars_in_line=$(echo "$line" | grep -o '\${[^}]*}' | sed 's/[${}]//g' | sort -u)
+        for var in $vars_in_line; do
+            if [ -n "${!var}" ]; then
+                value="${!var}"
+                # Replace ${VAR} with the actual value
+                expanded_line=$(echo "$expanded_line" | sed "s/\${$var}/$value/g")
+            fi
+        done
     else
-        # Fallback: use eval for variable expansion (less safe but works)
-        expanded_line=$(eval echo "$line")
+        # For non-JSON commands, use the original method
+        if command -v envsubst >/dev/null 2>&1; then
+            expanded_line=$(echo "$line" | envsubst)
+        else
+            # Fallback: use eval for variable expansion
+            expanded_line=$(eval echo "$line")
+        fi
     fi
     
     echo "Executing: $expanded_line"

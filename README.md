@@ -6,15 +6,7 @@ A complete AI coding agent starter pack with Claude Code, pre-configured with es
 
 ## 🚀 AI Coding Agent Starter Pack
 
-This is a complete starter pack for autonomous AI development. The included `CLAUDE.md` template configures Claude with:
-
-- **Autonomous task execution** with surgical code edits and minimal error handling
-- **Automatic SMS notifications** when tasks complete (great for long-running jobs)
-- **Conda environment integration** with proper execution protocols
-- **Git commit and push workflows** with milestone tracking
-- **Task logging** in `task_log.md` for full transparency
-
-**Fully customizable** - Modify the template at `/templates/.claude/CLAUDE.md` to suit your workflow!
+This is a complete starter pack for autonomous AI development. 
 
 ## What This Does
 - **Complete AI coding agent setup** with Claude Code in an isolated Docker container
@@ -23,11 +15,18 @@ This is a complete starter pack for autonomous AI development. The included `CLA
   - **Context7** - Pulls up-to-date, version-specific documentation and code examples straight from the source into your prompt
   - **Twilio** - SMS notifications when long-running tasks complete (perfect for >10min jobs)
 - **Persistent conversation history** - Resumes from where you left off, even after crashes
-- **Custom CLAUDE.md template** - Prompt engineering that prevents excessive error handling, task simplification, and fallback behaviors
 - **Remote work notifications** - Get pinged via SMS when tasks finish, so you can step away from your monitor
-- Simple one-command setup and usage
-- Integrates existing conda environments seamlessly
-- Documents work in `task_log.md` for full traceability
+- **Simple one-command setup and usage**
+
+The included `CLAUDE.md` template configures Claude with:
+
+- **Autonomous task execution** with surgical code edits and minimal error handling
+- **Automatic SMS notifications** when tasks complete (great for long-running jobs)
+- **Conda environment integration** with proper execution protocols
+- **Git commit and push workflows** with milestone tracking
+- **Guardrails** that protect against error handling (slightly counterintuitive but letting cc do error handling actually reduces readability + increases silent failures), task simplification, and fallback behaviors.
+
+**Fully customizable** - Modify the template at `/templates/.claude/CLAUDE.md` to suit your workflow!
 
 ## Quick Start
 
