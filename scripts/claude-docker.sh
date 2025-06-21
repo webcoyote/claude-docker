@@ -122,6 +122,12 @@ fi
 mkdir -p "$HOME/.claude-docker/claude-home"
 mkdir -p "$HOME/.claude-docker/ssh"
 
+# Copy authentication files to persistent claude-home if they don't exist
+if [ -f "$HOME/.claude/.credentials.json" ] && [ ! -f "$HOME/.claude-docker/claude-home/.credentials.json" ]; then
+    echo "✓ Copying Claude authentication to persistent directory"
+    cp "$HOME/.claude/.credentials.json" "$HOME/.claude-docker/claude-home/.credentials.json"
+fi
+
 # Log information about persistent Claude home directory
 echo ""
 echo "📁 Claude persistent home directory: ~/.claude-docker/claude-home/"
