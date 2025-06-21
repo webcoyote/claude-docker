@@ -16,20 +16,10 @@ This is a complete starter pack for autonomous AI development.
   - **Twilio** - SMS notifications when long-running tasks complete (perfect for >10min jobs)
 - **Persistent conversation history** - Resumes from where you left off, even after crashes
 - **Remote work notifications** - Get pinged via SMS when tasks finish, so you can step away from your monitor
-- **Simple one-command setup and usage**
-
-The included `CLAUDE.md` template configures Claude with:
-
-- **Autonomous task execution** with surgical code edits and minimal error handling
-- **Automatic SMS notifications** when tasks complete (great for long-running jobs)
-- **Conda environment integration** with proper execution protocols
-- **Git commit and push workflows** with milestone tracking
-- **Guardrails** that protect against error handling (slightly counterintuitive but letting cc do error handling actually reduces readability + increases silent failures), task simplification, and fallback behaviors.
-
-**Fully customizable** - Modify the template at `.claude/CLAUDE.md` to suit your workflow!
+- **Simple one-command setup and usage** - Zero friction set up for plug and play integration with existing cc workflows.
+- **Fully customizable** - Modify the can modify the files at `~/.claude-docker` for custom slash commands, settings and claude.md files.
 
 ## Quick Start
-
 ```bash
 # 0. Assumes you claude-code and docker already installed.
 
@@ -105,7 +95,7 @@ ssh -T git@github.com -i ~/.claude-docker/ssh/id_rsa
 
 **Why separate SSH keys?**
 - ✅ **Security Isolation**: Claude can't access or modify your personal SSH keys, config, or known_hosts
-- ✅ **SSH State Persistence**: The SSH directory is mounted (not copied) so that SSH state files like `known_hosts` persist between sessions - without this, you'd get host key verification prompts every time
+- ✅ **SSH State Persistence**: The SSH directory is mounted at runtime.
 - ✅ **Easy Revocation**: Delete `~/.claude-docker/ssh/` to instantly revoke Claude's git access
 - ✅ **Clean Audit Trail**: All Claude SSH activity is isolated and easily traceable
 
@@ -182,7 +172,6 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 
 
 ## Configuration
-
 During build, the `.env` file from the claude-docker directory is baked into the image:
 - Credentials are embedded at `/app/.env` inside the container
 - No need to manage .env files in each project
@@ -193,7 +182,6 @@ The setup creates `~/.claude-docker/` in your home directory with:
 - `ssh/` - Directory where claude-dockers private ssh key and known hosts file is stored.
 
 ### CLAUDE.md Configuration
-
 The `CLAUDE.md` file controls Claude's behavior and is managed as follows:
 
 1. **First Run**: If no CLAUDE.md exists at `~/.claude-docker/claude-home/CLAUDE.md`, the template from this repository is copied there
@@ -210,11 +198,8 @@ Each project gets:
 The Docker image is built only once when you first run `claude-docker`. To force a rebuild:
 
 ```bash
-# Remove the existing image
-docker rmi claude-docker:latest
-
-# Next run of claude-docker will rebuild
-claude-docker
+# Next run of claude-docker will rebuild (option to also rebuild with --no-cache)
+claude-docker --rebuild (--no-cache)
 ```
 
 Rebuild when you:

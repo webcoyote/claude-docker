@@ -6,6 +6,8 @@
 NO_CACHE=""
 FORCE_REBUILD=false
 CONTINUE_FLAG=""
+MEMORY_LIMIT=""
+GPU_ACCESS=""
 ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -21,6 +23,14 @@ while [[ $# -gt 0 ]]; do
         --continue)
             CONTINUE_FLAG="--continue"
             shift
+            ;;
+        --memory)
+            MEMORY_LIMIT="$2"
+            shift 2
+            ;;
+        --gpus)
+            GPU_ACCESS="$2"
+            shift 2
             ;;
         *)
             ARGS+=("$1")
@@ -62,6 +72,17 @@ else
     echo "⚠️  No .env file found at $ENV_FILE"
     echo "   Twilio MCP features will be unavailable."
     echo "   To enable: create .env in claude-docker directory with your credentials"
+fi
+
+# Use environment variables as defaults if command line args not provided
+if [ -z "$MEMORY_LIMIT" ] && [ -n "$DOCKER_MEMORY_LIMIT" ]; then
+    MEMORY_LIMIT="$DOCKER_MEMORY_LIMIT"
+    echo "✓ Using memory limit from environment: $MEMORY_LIMIT"
+fi
+
+if [ -z "$GPU_ACCESS" ] && [ -n "$DOCKER_GPU_ACCESS" ]; then
+    GPU_ACCESS="$DOCKER_GPU_ACCESS"
+    echo "✓ Using GPU access from environment: $GPU_ACCESS"
 fi
 
 # Check if we need to rebuild the image
@@ -176,6 +197,26 @@ fi
 # Prepare additional mount arguments
 MOUNT_ARGS=""
 ENV_ARGS=""
+DOCKER_OPTS=""
+
+# Add memory limit if specified
+if [ -n "$MEMORY_LIMIT" ]; then
+    echo "✓ Setting memory limit: $MEMORY_LIMIT"
+    DOCKER_OPTS="$DOCKER_OPTS --memory $MEMORY_LIMIT"
+fi
+
+# Add GPU access if specified
+if [ -n "$GPU_ACCESS" ]; then
+    # Check if nvidia-docker2 or nvidia-container-runtime is available
+    if docker info 2>/dev/null | grep -q nvidia || which nvidia-docker >/dev/null 2>&1; then
+        echo "✓ Enabling GPU access: $GPU_ACCESS"
+        DOCKER_OPTS="$DOCKER_OPTS --gpus $GPU_ACCESS"
+    else
+        echo "⚠️  GPU access requested but NVIDIA Docker runtime not found"
+        echo "   Install nvidia-docker2 or nvidia-container-runtime to enable GPU support"
+        echo "   Continuing without GPU access..."
+    fi
+fi
 
 # Mount conda installation if specified
 if [ -n "$CONDA_PREFIX" ] && [ -d "$CONDA_PREFIX" ]; then
@@ -232,6 +273,7 @@ fi
 # Run Claude Code in Docker
 echo "Starting Claude Code in Docker..."
 docker run -it --rm \
+    $DOCKER_OPTS \
     -v "$CURRENT_DIR:/workspace" \
     -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
     -v "$HOME/.claude-docker/ssh:/home/claude-user/.ssh:rw" \
