@@ -12,7 +12,7 @@
     },
     "model": "sonnet",
     "env": {
-      "BASH_DEFAULT_TIMEOUT_MS": "86400000", // 24 hours
-      "BASH_MAX_TIMEOUT_MS": "86400000" // 24 hours
+      "BASH_DEFAULT_TIMEOUT_MS": "86400000",
+      "BASH_MAX_TIMEOUT_MS": "86400000"
     }
   }
