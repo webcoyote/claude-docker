@@ -55,6 +55,16 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
 
 ### 5. LOGGING & COMMUNICATION PROTOCOL
 - **`task_log.md`**: UPDATE PROACTIVELY at every single checklist step. This is your primary on-disk communication channel. Create it if it does not exist.
+- **COMPREHENSIVE DOCUMENTATION REQUIREMENT**: `task_log.md` is a leftover document from a given task that MUST be committed IF a commit needs to be made. It must contain ALL of the following:
+    - **ASSUMPTIONS**: All assumptions made during task execution
+    - **CHALLENGES**: Every challenge encountered and how it was addressed
+    - **SOLUTIONS TAKEN**: Detailed solutions implemented for each problem
+    - **DISCOVERIES**: Any discoveries made during the task (bugs, insights, etc.)
+    - **MISSING PACKAGES**: Any packages that needed to be installed
+    - **TASK SUMMARY**: Complete summary of what the task accomplished
+    - **CHECKLIST SOLUTION**: Step-by-step checklist with completion status
+    - **FINAL COMMENTS**: Any final observations, recommendations, or notes
+- **COMMIT WHEN NECESSARY**: If the task_log.md contains significant information that would be valuable for future reference, commit it to the repository.
 - **SEND USER TEXT AS CHECKLIST ITEM**: ALWAYS add 'Send user text' as an explicit checklist item to assure the user the text will be sent.
 - **TWILIO SMS IS THE PRIMARY "CALL-BACK" MECHANISM**:
     - **SEND A TEXT AT THE END OF EVERY CHECKLIST**: A checklist represents a significant task. A text signals that this task is complete and your attention is needed.
@@ -64,3 +74,12 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
     - **MESSAGE CONTENT**: The text MUST contain a brief summary of the outcome (what was achieved or why termination occurred) so you are up-to-speed when you return.
     - **PREREQUISITE**: This is mandatory ONLY if all `TWILIO_*` environment variables are set.
     - **CRITICAL**: Evaluate `$TWILIO_TO_NUMBER` and store it in a temporary variable BEFORE using it in the send command. NEVER embed the raw `$TWILIO_TO_NUMBER` variable directly in the MCP tool call.
+    - **MESSAGE DELIVERY VERIFICATION**: After sending ANY SMS, ALWAYS verify delivery status using:
+        ```bash
+        curl -X GET "https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID/Messages/[MESSAGE_SID].json" -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN"
+        ```
+        Check the "status" field in the response. If status is "failed", retry with progressively shorter messages:
+        1. First retry: "Task complete - [brief outcome]"
+        2. Second retry: "Task done - [status]"
+        3. Final retry: "Task complete"
+        Continue until a message has status "delivered" or "sent".
