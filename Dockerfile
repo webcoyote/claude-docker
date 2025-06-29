@@ -29,8 +29,12 @@ fi
 # Create a non-root user with matching host UID/GID
 ARG USER_UID=1000
 ARG USER_GID=1000
-RUN groupadd -g $USER_GID claude-user && \
-    useradd -m -s /bin/bash -u $USER_UID -g $USER_GID claude-user && \
+RUN if getent group $USER_GID > /dev/null 2>&1; then \
+        GROUP_NAME=$(getent group $USER_GID | cut -d: -f1); \
+    else \
+        groupadd -g $USER_GID claude-user && GROUP_NAME=claude-user; \
+    fi && \
+    useradd -m -s /bin/bash -u $USER_UID -g $GROUP_NAME claude-user && \
     echo "claude-user ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Create app directory
@@ -73,7 +77,7 @@ RUN cp /tmp/.claude.json /home/claude-user/.claude.json && \
     rm -f /tmp/.claude.json
 
 # Set proper ownership for everything
-RUN chown -R claude-user:claude-user /app /home/claude-user
+RUN chown -R claude-user /app /home/claude-user
 
 # Switch to non-root user
 USER claude-user
