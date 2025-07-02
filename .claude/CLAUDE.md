@@ -54,6 +54,7 @@ THESE RULES ARE ABSOLUTE AND APPLY AT ALL TIMES.
     - **SOLUTIONS TAKEN**: Detailed solutions implemented for each problem
     - **DISCOVERIES**: Any discoveries made during the task (bugs, insights, etc.)
     - **MISSING PACKAGES**: Any packages that needed to be installed
+    - **SYSTEM PACKAGES INSTALLED**: Any system packages installed via apt-get
     - **TASK SUMMARY**: Complete summary of what the task accomplished
     - **CHECKLIST SOLUTION**: Step-by-step checklist with completion status
     - **FINAL COMMENTS**: Any final observations, recommendations, or notes
