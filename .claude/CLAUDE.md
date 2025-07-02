@@ -1,30 +1,28 @@
-# CORE EXECUTION PROTOCOLAdd commentMore actions
+# CORE EXECUTION PROTOCOL
 THESE RULES ARE ABSOLUTE AND APPLY AT ALL TIMES.
 
-### 1. STARTUP PROCEDURE
-- **FIRST & ALWAYS**: IF project dir has existing code, we MUST index the codebase using Serena MCP.
-  `uvx --from git+https://github.com/oraios/serena index-project`
-
-### 2. TASK & PLAN ADHERENCE
-WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
-- **NEVER SIMPLIFY THE GOAL**: DO NOT MODIFY, REDUCE, OR SIMPLIFY THE TASK TO MAKE IT ACHIEVABLE. IF THE TASK AS SPECIFIED IS IMPOSSIBLE, YOU MUST TERMINATE.
-- **EARLY TERMINATION** is ALWAYS preferable to a flawed or deviated implementation.
-
-### 3. CODING & SCRIPTING MANDATE
+### 1. GENERAL CODING & EXECUTION PROTOCOL
 - **SIMPLICITY IS LAW**: MAXIMIZE READABILITY WHILE MINIMIZING FUNCTIONS AND CONDITIONAL LOGIC.
-- **NO ERROR HANDLING**: DO NOT USE try/except OR ANY FORM OF ERROR SUPPRESSION. Scripts MUST fail loudly and immediately.
+- **NO ERROR HANDLING**: DO NOT ATTEMPT ANY FORM OF ERROR SUPPRESSION. Scripts MUST fail loudly and immediately.
 - **NO FALLBACKS OR ALTERNATIVE PATHS**.
 - **NO EDGE CASE HANDLING**: UNLESS USER PROMPTS FOR IT.
 - **RELATIVE PATHS ONLY**: NEVER use absolute paths in code.
-- **SURGICAL EDITS**: Change the absolute minimum amount of code necessary to achieve the goal.
-- **SKELETON FIRST**: Create a minimal, working script first. Refine ONLY after the skeleton is proven to work.
-- **USE `dotenv`** to load `.env` files when required.
+- **SURGICAL EDITS**: Change the absolute MINIMUM amount of code necessary to achieve the goal.
 - **EARLY TERMINATION** is ALWAYS preferable to a flawed or deviated implementation.
 
-### 3A. PYTHON/CONDA ENVIRONMENT EXECUTION PROTOCOL
+### 2. STARTUP PROCEDURE
+- **FIRST & ALWAYS**: IF project dir has existing code, we MUST index the codebase using Serena MCP.
+  `uvx --from git+https://github.com/oraios/serena index-project`
+
+### 3. TASK & PLAN ADHERENCE
+- **NEVER SIMPLIFY THE GOAL**: DO NOT MODIFY, REDUCE, OR SIMPLIFY THE TASK TO MAKE IT ACHIEVABLE. IF THE TASK AS SPECIFIED IS IMPOSSIBLE, YOU MUST TERMINATE.
+- **EARLY TERMINATION** is ALWAYS preferable to a flawed or deviated implementation.
+
+### 4. LANGUAGE-SPECIFIC ENVIRONMENT & EXECUTION PROTOCOLS
+
+#### 4A. PYTHON/CONDA ENVIRONMENT EXECUTION PROTOCOL
 - **MANDATORY CONDA BINARY**:
   ALWAYS use the conda binary at `$CONDA_PREFIX/bin/conda` for all environment and script execution commands.
-
 - **SCRIPT EXECUTION FORMAT**:
   ALWAYS execute Python scripts using the following format:
   ```bash
@@ -33,19 +31,14 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
   ```
   - Replace `ENVIRONMENT_NAME` with the target conda environment.
   - Replace `your_script.py [args]` with the script and its arguments.
-
 - **NO EXCEPTIONS**:
   DO NOT use any other method or binary for Python script execution within conda environments.
   DO NOT omit the `--live-stream` or `-u` flags under any circumstances.
 
-### 3B. LONG-RUNNING SCRIPT PROTOCOL
-- **10-MINUTE THRESHOLD**: If a script is estimated to take more than 10 minutes to run, STOP execution immediately.
-- **TMUX SESSION REQUIREMENT**: Inform the user they must start a tmux session before running long scripts.
-- **SMS NOTIFICATION**: Send an SMS notification to the user about the long-running script requirement.
-- **EXECUTION COMMAND**: Provide the exact command the user should run in their tmux session.
-- **NO EXCEPTIONS**: Do not proceed with long-running scripts outside of tmux sessions.
+- **PYTHON SPECIFIC PRACTICES**:
+  **USE `dotenv`** to load `.env` files when required.
 
-### 4. GIT COMMIT & PUSH PROTOCOL
+### 5. GIT COMMIT & PUSH PROTOCOL
 - **COMMIT FREQUENTLY** after completing major steps (milestones).
 - **ALWAYS PUSH** to the remote after each commit: `git push -u origin <current-branch>`
 - **AFTER PUSHING, SEND A MILESTONE COMPLETION SMS** as per the communication protocol.
@@ -53,7 +46,7 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
     - **Subject**: Imperative mood, capitalized, under 50 chars, no period. (e.g., `feat(thing): Add new thing`)
     - **Body**: Explain *what* and *why*, not how. Wrap at 72 chars. For new scripts, ALWAYS include an example usage command.
 
-### 5. LOGGING & COMMUNICATION PROTOCOL
+### 6. LOGGING & COMMUNICATION PROTOCOL
 - **`task_log.md`**: UPDATE PROACTIVELY at every single checklist step. This is your primary on-disk communication channel. Create it if it does not exist.
 - **COMPREHENSIVE DOCUMENTATION REQUIREMENT**: `task_log.md` is a leftover document from a given task that MUST be committed IF a commit needs to be made. It must contain ALL of the following:
     - **ASSUMPTIONS**: All assumptions made during task execution
