@@ -52,10 +52,6 @@ else
     echo "No Twilio credentials found - SMS notifications disabled"
 fi
 
-# Install/update Claude Code globally
-echo "Updating Claude Code globally..."
-sudo npm i -g @anthropic-ai/claude-code
-
 # Start Claude Code with permissions bypass
 echo "Starting Claude Code..."
 exec claude $CLAUDE_CONTINUE_FLAG --dangerously-skip-permissions "$@"
