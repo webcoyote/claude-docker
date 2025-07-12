@@ -3,6 +3,10 @@
 
 FROM node:20-slim
 
+# delete default node user if exists
+# we will likely need his UID
+RUN deluser node || true
+
 # Install required system dependencies
 RUN apt-get update && apt-get install -y \
     git \
