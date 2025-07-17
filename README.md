@@ -41,6 +41,46 @@ claude-docker
 # Optional: Set up SSH keys for git push (see Prerequisites section)
 # The script will show setup instructions if keys are missing
 ```
+## Command Line Flags
+
+Claude Docker supports several command-line flags for different use cases:
+
+### Basic Usage
+```bash
+claude-docker                    # Start Claude in current directory
+claude-docker --continue         # Resume previous conversation in this directory
+claude-docker --rebuild          # Force rebuild Docker image
+claude-docker --rebuild --no-cache  # Rebuild without using Docker cache
+```
+
+### Available Flags
+
+| Flag | Description | Example |
+|------|-------------|---------|
+| `--continue` | Resume the previous conversation in current directory | `claude-docker --continue` |
+| `--rebuild` | Force rebuild of the Docker image | `claude-docker --rebuild` |
+| `--no-cache` | When rebuilding, don't use Docker cache | `claude-docker --rebuild --no-cache` |
+| `--memory` | Set container memory limit | `claude-docker --memory 8g` |
+| `--gpus` | Enable GPU access (requires nvidia-docker) | `claude-docker --gpus all` |
+
+### Environment Variables
+You can also set defaults in your `.env` file:
+```bash
+DOCKER_MEMORY_LIMIT=8g          # Default memory limit
+DOCKER_GPU_ACCESS=all           # Default GPU access
+```
+
+### Examples
+```bash
+# Resume work with 16GB memory limit
+claude-docker --continue --memory 16g
+
+# Rebuild after updating .env file
+claude-docker --rebuild
+
+# Use GPU for ML tasks
+claude-docker --gpus all
+```
 
 ## Prerequisites
 
@@ -199,46 +239,6 @@ Each project gets:
 - `.claude/settings.json` - Claude Code settings with MCP
 - `.claude/CLAUDE.md` - Project-specific instructions (if you create one)
 
-## Command Line Flags
-
-Claude Docker supports several command-line flags for different use cases:
-
-### Basic Usage
-```bash
-claude-docker                    # Start Claude in current directory
-claude-docker --continue         # Resume previous conversation in this directory
-claude-docker --rebuild          # Force rebuild Docker image
-claude-docker --rebuild --no-cache  # Rebuild without using Docker cache
-```
-
-### Available Flags
-
-| Flag | Description | Example |
-|------|-------------|---------|
-| `--continue` | Resume the previous conversation in current directory | `claude-docker --continue` |
-| `--rebuild` | Force rebuild of the Docker image | `claude-docker --rebuild` |
-| `--no-cache` | When rebuilding, don't use Docker cache | `claude-docker --rebuild --no-cache` |
-| `--memory` | Set container memory limit | `claude-docker --memory 8g` |
-| `--gpus` | Enable GPU access (requires nvidia-docker) | `claude-docker --gpus all` |
-
-### Environment Variables
-You can also set defaults in your `.env` file:
-```bash
-DOCKER_MEMORY_LIMIT=8g          # Default memory limit
-DOCKER_GPU_ACCESS=all           # Default GPU access
-```
-
-### Examples
-```bash
-# Resume work with 16GB memory limit
-claude-docker --continue --memory 16g
-
-# Rebuild after updating .env file
-claude-docker --rebuild
-
-# Use GPU for ML tasks
-claude-docker --gpus all
-```
 
 ### Rebuilding the Image
 
