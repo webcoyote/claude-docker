@@ -2,6 +2,7 @@
 # ABOUTME: Startup script for claude-docker container with MCP server
 # ABOUTME: Loads twilio env vars, checks for .credentials.json, copies CLAUDE.md template if no claude.md in claude-docker/claude-home.
 # ABOUTME: Starts claude code with permissions bypass and continues from last session.
+# NOTE: Need to call claude-docker --rebuild to integrate changes.
 
 # Load environment variables from .env if it exists
 # Use the .env file baked into the image at build time
@@ -51,6 +52,20 @@ if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then
 else
     echo "No Twilio credentials found - SMS notifications disabled"
 fi
+
+# # Export environment variables from settings.json
+# # This is a workaround for Docker container not properly exposing these to Claude
+# if [ -f "$HOME/.claude/settings.json" ] && command -v jq >/dev/null 2>&1; then
+#     echo "Loading environment variables from settings.json..."
+#     # First remove comments from JSON, then extract env vars
+#     # Using sed to remove // comments before parsing with jq
+#     while IFS='=' read -r key value; do
+#         if [ -n "$key" ] && [ -n "$value" ]; then
+#             export "$key=$value"
+#             echo "  Exported: $key=$value"
+#         fi
+#     done < <(sed 's://.*$::g' "$HOME/.claude/settings.json" | jq -r '.env // {} | to_entries | .[] | "\(.key)=\(.value)"' 2>/dev/null)
+# fi
 
 # Start Claude Code with permissions bypass
 echo "Starting Claude Code..."

@@ -50,7 +50,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN mkdir -p /app/.claude /home/claude-user/.claude
 
 # Copy startup script
-COPY scripts/startup.sh /app/
+COPY src/startup.sh /app/
 RUN chmod +x /app/startup.sh
 
 # Copy .claude directory for runtime use
@@ -88,8 +88,9 @@ ENV HOME=/home/claude-user
 # Install uv (Astral) for claude-user
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Add claude-user's local bin to PATH
-ENV PATH="/home/claude-user/.local/bin:${PATH}"
+# Add claude-user's local bin and scripts to PATH and PYTHONPATH
+ENV PATH="/home/claude-user/scripts:/home/claude-user/.local/bin:${PATH}"
+ENV PYTHONPATH="/home/claude-user/scripts:${PYTHONPATH}"
 
 # Install MCP servers from configuration file
 RUN /app/install-mcp-servers.sh

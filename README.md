@@ -32,7 +32,7 @@ cp .env.example .env
 nano .env  # Add your API keys (see below)
 
 # 3. Install
-./scripts/install.sh
+./src/install.sh
 
 # 4. Run from any project
 cd ~/your-project
@@ -166,6 +166,20 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 - Stores assumptions, insights, and challenges encountered
 - Acts as a simple summary to quickly understand what the agent accomplished
 
+### 🛠️ Shared Utility Scripts (`scripts/`)
+- **`sys_utils.py`** - Common utilities for reproducibility and git state management
+  - `check_git_state_clean()` - Ensures clean git state before script execution
+  - `create_reproduce_command()` - Generates reproduction commands with git hash and arguments
+- Automatically available for import in Python scripts: `from sys_utils import check_git_state_clean, create_reproduce_command`
+- Enforces reproducibility standards and clean execution environments
+
+### 🧠 Enhanced Prompt Engineering (`CLAUDE.md`)
+- **Execution Protocols** - Strict guidelines for simplicity, no error handling, surgical edits
+- **Python Reproducibility** - Mandatory output directory structure with git hash, timestamp, and reproduction commands
+- **Git State Assertion** - Scripts automatically check for clean git state before execution (except test/demo inputs)
+- **System Package Installation** - Automatic documentation of apt-get packages in task logs
+- **Startup Procedure** - Automatic codebase indexing using Serena MCP for enhanced code understanding
+
 ### 🐳 Clean Environment
 - Each session runs in fresh Docker container
 - Only current working directory mounted (along with conda directories specified in `.env`).
@@ -180,7 +194,9 @@ During build, the `.env` file from the claude-docker repository directory is bak
 
 The setup creates `~/.claude-docker/` in your home directory with:
 - `claude-home/` - Persistent Claude authentication and settings
-- `ssh/` - Directory where claude-dockers private ssh key and known hosts file is stored.
+- `ssh/` - Directory where claude-dockers private ssh key and known hosts file is stored
+
+The `scripts/` directory is automatically mounted in each container session, making `sys_utils.py` and other shared utilities available across all projects.
 
 ### Template Configuration Copy
 During installation (`install.sh`), all contents from the project's `.claude/` directory are copied to `~/.claude-docker/claude-home/` as template/base settings. This includes:

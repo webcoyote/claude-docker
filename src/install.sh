@@ -9,6 +9,13 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Create claude persistence directory
 mkdir -p "$HOME/.claude-docker/claude-home"
 
+# Create scripts directory
+mkdir -p "$HOME/.claude-docker/scripts"
+
+# Copy template scripts
+echo "✓ Copying template scripts to persistent directory"
+cp -r "$PROJECT_ROOT/scripts/"* "$HOME/.claude-docker/scripts/"
+
 # Copy template .claude contents to persistent directory
 echo "✓ Copying template Claude configuration to persistent directory"
 cp -r "$PROJECT_ROOT/.claude/"* "$HOME/.claude-docker/claude-home/"
@@ -21,7 +28,7 @@ if [ ! -f "$PROJECT_ROOT/.env" ]; then
 fi
 
 # Add alias to .zshrc
-ALIAS_LINE="alias claude-docker='$PROJECT_ROOT/scripts/claude-docker.sh'"
+ALIAS_LINE="alias claude-docker='$PROJECT_ROOT/src/claude-docker.sh'"
 
 if ! grep -q "alias claude-docker=" "$HOME/.zshrc"; then
     echo "" >> "$HOME/.zshrc"
@@ -32,9 +39,31 @@ else
     echo "✓ Claude-docker alias already exists in .zshrc"
 fi
 
+# Add scripts directory to PATH and PYTHONPATH in .bashrc
+if grep -q "/.claude-docker/scripts" "$HOME/.bashrc"; then
+    echo "✓ Scripts directory already in .bashrc PATH/PYTHONPATH"
+else
+    echo "" >> "$HOME/.bashrc"
+    echo "# Claude Docker scripts directory" >> "$HOME/.bashrc"
+    echo "export PATH=\"\$HOME/.claude-docker/scripts:\$PATH\"" >> "$HOME/.bashrc"
+    echo "export PYTHONPATH=\"\$HOME/.claude-docker/scripts:\$PYTHONPATH\"" >> "$HOME/.bashrc"
+    echo "✓ Added scripts directory to .bashrc PATH/PYTHONPATH"
+fi
+
+# Add scripts directory to PATH and PYTHONPATH in .zshrc
+if grep -q "/.claude-docker/scripts" "$HOME/.zshrc"; then
+    echo "✓ Scripts directory already in .zshrc PATH/PYTHONPATH"
+else
+    echo "" >> "$HOME/.zshrc"
+    echo "# Claude Docker scripts directory" >> "$HOME/.zshrc"
+    echo "export PATH=\"\$HOME/.claude-docker/scripts:\$PATH\"" >> "$HOME/.zshrc"
+    echo "export PYTHONPATH=\"\$HOME/.claude-docker/scripts:\$PYTHONPATH\"" >> "$HOME/.zshrc"
+    echo "✓ Added scripts directory to .zshrc PATH/PYTHONPATH"
+fi
+
 # Make scripts executable
-chmod +x "$PROJECT_ROOT/scripts/claude-docker.sh"
-chmod +x "$PROJECT_ROOT/scripts/startup.sh"
+chmod +x "$PROJECT_ROOT/src/claude-docker.sh"
+chmod +x "$PROJECT_ROOT/src/startup.sh"
 
 echo ""
 echo "Installation complete! 🎉"
