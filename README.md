@@ -166,12 +166,18 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 - Stores assumptions, insights, and challenges encountered
 - Acts as a simple summary to quickly understand what the agent accomplished
 
-### 🛠️ Shared Utility Scripts (`scripts/`)
+### 🛠️ Shared Utility Scripts (`~/.claude-docker/scripts/`)
 - **`sys_utils.py`** - Common utilities for reproducibility and git state management
   - `check_git_state_clean()` - Ensures clean git state before script execution
   - `create_reproduce_command()` - Generates reproduction commands with git hash and arguments
 - Automatically available for import in Python scripts: `from sys_utils import check_git_state_clean, create_reproduce_command`
 - Enforces reproducibility standards and clean execution environments
+
+**Custom Script Development:**
+- Place executable scripts in `~/.claude-docker/scripts/` to extend Claude's capabilities
+- Add Python modules for shared functionality across projects
+- Scripts are accessible as commands in both host terminal and Claude containers
+- All modifications persist across container sessions and rebuilds
 
 ### 🧠 Enhanced Prompt Engineering (`CLAUDE.md`)
 - **Execution Protocols** - Strict guidelines for simplicity, no error handling, surgical edits
@@ -197,6 +203,27 @@ The setup creates `~/.claude-docker/` in your home directory with:
 - `ssh/` - Directory where claude-dockers private ssh key and known hosts file is stored
 
 The `scripts/` directory is automatically mounted in each container session, making `sys_utils.py` and other shared utilities available across all projects.
+
+### 🛣️ PATH and PYTHONPATH Integration
+During installation, the scripts directory is automatically added to both your host system and container environments:
+
+**Host System Setup:**
+- `~/.claude-docker/scripts` is added to both `PATH` and `PYTHONPATH` in `.bashrc` and `.zshrc`
+- Scripts placed in this directory become available as system commands on your host
+- Python modules can be imported directly: `from sys_utils import check_git_state_clean`
+
+**Container Setup:**
+- Scripts directory mounted at `/home/claude-user/scripts` with read/write access
+- Container `PATH` includes `/home/claude-user/scripts` (Dockerfile:92)
+- Container `PYTHONPATH` includes `/home/claude-user/scripts` (Dockerfile:93)
+- All custom scripts and Python modules are immediately available to Claude
+
+**What This Means:**
+- ✅ **Bidirectional Access**: Scripts work on both host and in Claude containers
+- ✅ **No Import Issues**: Python utilities available without path manipulation
+- ✅ **Custom Commands**: Add executable scripts to extend Claude's capabilities
+- ✅ **Shared Libraries**: Common code shared across all projects automatically
+- ✅ **Persistent Utilities**: Scripts survive container restarts and rebuilds
 
 ### Template Configuration Copy
 During installation (`install.sh`), all contents from the project's `.claude/` directory are copied to `~/.claude-docker/claude-home/` as template/base settings. This includes:
