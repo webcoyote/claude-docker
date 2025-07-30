@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     python3 \
     build-essential \
     sudo \
+    openssh-client \
+    sshpass \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv (Astral) for Serena MCP (todo make this modular.)

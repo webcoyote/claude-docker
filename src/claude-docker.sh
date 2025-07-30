@@ -51,6 +51,58 @@ CURRENT_DIR=$(pwd)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# Function to detect git worktree and get main repository info
+detect_git_worktree() {
+    local git_info_json
+    local is_worktree
+    local main_repo_path
+    
+    # Use our git_utils.py to get repository information
+    if command -v python3 >/dev/null 2>&1 && [ -f "$PROJECT_ROOT/scripts/git_utils.py" ]; then
+        git_info_json=$(python3 "$PROJECT_ROOT/scripts/git_utils.py" json 2>/dev/null)
+        if [ $? -eq 0 ] && [ -n "$git_info_json" ]; then
+            # Parse JSON to check if this is a worktree
+            is_worktree=$(echo "$git_info_json" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('is_worktree', False))" 2>/dev/null)
+            
+            if [ "$is_worktree" = "True" ]; then
+                # Get main repository path from worktree info
+                main_repo_path=$(echo "$git_info_json" | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+worktree_info = data.get('worktree_info', {})
+main_worktree = worktree_info.get('main_worktree')
+if main_worktree:
+    print(main_worktree)
+" 2>/dev/null)
+                
+                if [ -n "$main_repo_path" ] && [ -d "$main_repo_path" ]; then
+                    echo "WORKTREE_DETECTED=true"
+                    echo "MAIN_REPO_PATH=$main_repo_path"
+                    echo "WORKTREE_PATH=$CURRENT_DIR"
+                    return 0
+                fi
+            fi
+        fi
+    fi
+    
+    echo "WORKTREE_DETECTED=false"
+    return 1
+}
+
+# Detect git worktree before proceeding
+echo "Checking git repository status..."
+WORKTREE_INFO=$(detect_git_worktree)
+eval "$WORKTREE_INFO"
+
+if [ "$WORKTREE_DETECTED" = "true" ]; then
+    echo "✓ Git worktree detected"
+    echo "  Worktree: $WORKTREE_PATH"
+    echo "  Main repo: $MAIN_REPO_PATH"
+    echo "  Enhanced git support will be available in container"
+else
+    echo "Standard git repository (or no git repository)"
+fi
+
 # Check if .claude directory exists in current project, create if not
 if [ ! -d "$CURRENT_DIR/.claude" ]; then
     echo "Creating .claude directory for this project..."
@@ -191,6 +243,70 @@ EOF
     fi
 fi
 
+# Check macOS host SSH connectivity for native builds
+check_macos_ssh_connectivity() {
+    if [ "$(uname)" = "Darwin" ]; then
+        echo "Checking macOS SSH connectivity for native builds..."
+        
+        # Check if Remote Login is enabled
+        if sudo systemsetup -getremotelogin 2>/dev/null | grep -q "On"; then
+            echo "✓ macOS Remote Login is enabled"
+            
+            # Test host.docker.internal connectivity (will be available from container)
+            echo "✓ Host SSH connectivity will be available via host.docker.internal"
+            
+            # Check if host SSH keys exist
+            HOST_SSH_KEY_PATH="$HOME/.claude-docker/ssh/host_keys/id_rsa"
+            if [ ! -f "$HOST_SSH_KEY_PATH" ]; then
+                echo ""
+                echo "⚠️  Host SSH keys not found for native macOS builds"
+                echo "   To enable native macOS builds from container:"
+                echo ""
+                echo "   1. Generate SSH key for container-to-host communication:"
+                echo "      mkdir -p ~/.claude-docker/ssh/host_keys"
+                echo "      ssh-keygen -t rsa -b 4096 -f ~/.claude-docker/ssh/host_keys/id_rsa -N ''"
+                echo ""
+                echo "   2. Add public key to your macOS user:"
+                echo "      cat ~/.claude-docker/ssh/host_keys/id_rsa.pub >> ~/.ssh/authorized_keys"
+                echo "      chmod 600 ~/.ssh/authorized_keys"
+                echo ""
+                echo "   3. Test connection from container (after starting):"
+                echo "      ssh -i ~/.ssh/host_keys/id_rsa $(whoami)@host.docker.internal"
+                echo ""
+                echo "   Native macOS builds will be unavailable until SSH keys are configured"
+                echo ""
+            else
+                echo "✓ Host SSH keys found for native macOS builds"
+                
+                # Test the SSH connection
+                HOST_USER=$(whoami)
+                if ssh -i "$HOST_SSH_KEY_PATH" -o ConnectTimeout=5 -o BatchMode=yes "$HOST_USER@localhost" exit 2>/dev/null; then
+                    echo "✓ SSH connection to macOS host verified"
+                else
+                    echo "⚠️  SSH connection test failed - may need to add public key to authorized_keys"
+                fi
+            fi
+        else
+            echo ""
+            echo "⚠️  macOS Remote Login is disabled"
+            echo "   To enable native macOS builds:"
+            echo "   1. Go to System Preferences > Sharing"
+            echo "   2. Enable 'Remote Login'"
+            echo "   3. Restart claude-docker"
+            echo ""
+            echo "   Native macOS builds will be unavailable until Remote Login is enabled"
+            echo ""
+        fi
+    else
+        echo "Not running on macOS - native macOS build support not applicable"
+    fi
+}
+
+# Check macOS SSH connectivity if enabled
+if [ "${ENABLE_MACOS_BUILDS:-false}" = "true" ]; then
+    check_macos_ssh_connectivity
+fi
+
 # Prepare additional mount arguments
 MOUNT_ARGS=""
 ENV_ARGS=""
@@ -267,17 +383,40 @@ else
     echo "No additional conda directories configured"
 fi
 
+# Prepare macOS host SSH key mounting
+HOST_SSH_MOUNT=""
+if [ "${ENABLE_MACOS_BUILDS:-false}" = "true" ] && [ -d "$HOME/.claude-docker/ssh/host_keys" ]; then
+    HOST_SSH_MOUNT="-v $HOME/.claude-docker/ssh/host_keys:/home/claude-user/.ssh/host_keys:ro"
+fi
+
+# Prepare git worktree mounting
+WORKTREE_MOUNT=""
+WORKTREE_ENV=""
+if [ "$WORKTREE_DETECTED" = "true" ]; then
+    echo "Setting up enhanced git worktree support..."
+    WORKTREE_MOUNT="-v $MAIN_REPO_PATH:/main-repo:rw"
+    WORKTREE_ENV="-e WORKTREE_DETECTED=true -e MAIN_REPO_PATH=/main-repo -e WORKTREE_PATH=/workspace"
+    echo "  Main repository mounted at: /main-repo"
+    echo "  Current worktree mounted at: /workspace"
+fi
+
 # Run Claude Code in Docker
 echo "Starting Claude Code in Docker..."
 "$DOCKER" run -it --rm \
     $DOCKER_OPTS \
     -v "$CURRENT_DIR:/workspace" \
+    $WORKTREE_MOUNT \
     -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
     -v "$HOME/.claude-docker/ssh:/home/claude-user/.ssh:rw" \
     -v "$HOME/.claude-docker/scripts:/home/claude-user/scripts:rw" \
+    $HOST_SSH_MOUNT \
     $MOUNT_ARGS \
     $ENV_ARGS \
+    $WORKTREE_ENV \
     -e CLAUDE_CONTINUE_FLAG="$CONTINUE_FLAG" \
+    -e ENABLE_MACOS_BUILDS="${ENABLE_MACOS_BUILDS:-false}" \
+    -e MACOS_USERNAME="${MACOS_USERNAME:-$(whoami)}" \
+    -e HOST_WORKING_DIRECTORY="${HOST_WORKING_DIRECTORY:-}" \
     --workdir /workspace \
     --name "claude-docker-$(basename "$CURRENT_DIR")-$$" \
     claude-docker:latest "${ARGS[@]}"

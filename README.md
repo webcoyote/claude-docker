@@ -14,6 +14,8 @@ This is a complete starter pack for autonomous AI development.
   - **Serena** - Advanced coding agent toolkit with project indexing and symbol manipulation
   - **Context7** - Pulls up-to-date, version-specific documentation and code examples straight from the source into your prompt
   - **Twilio** - SMS notifications when long-running tasks complete (perfect for >10min jobs)
+- **Git repository and worktree detection** - Automatic detection of git repositories and worktrees with environment variables
+- **Native macOS build support** - SSH-based communication to execute native macOS commands (xcodebuild, swift, etc.) from the container
 - **Persistent conversation history** - Resumes from where you left off, even after crashes
 - **Remote work notifications** - Get pinged via SMS when tasks finish, so you can step away from your monitor
 - **Simple one-command setup and usage** - Zero friction set up for plug and play integration with existing cc workflows.
@@ -146,7 +148,70 @@ ssh -T git@github.com -i ~/.claude-docker/ssh/id_rsa
 
 **Technical Note**: We mount the SSH directory rather than copying keys because SSH operations modify several files (`known_hosts`, connection state) that must persist between container sessions for a smooth user experience.
 
-### 5. Twilio Account (Optional - for SMS notifications)
+### 5. Native macOS Build Support (Optional - for native macOS compilation)
+For projects requiring native macOS builds (Xcode, Swift packages, etc.), claude-docker can execute commands directly on your macOS host via SSH:
+
+**Setup native macOS builds:**
+```bash
+# 1. Enable native builds in your .env file
+echo "ENABLE_MACOS_BUILDS=true" >> .env
+
+# 2. Run the automated setup script
+./scripts/setup_macos_ssh.sh
+
+# 3. Rebuild Docker image to include new settings
+claude-docker --rebuild
+```
+
+**What this enables:**
+- Execute `xcodebuild` commands from within the container
+- Build Swift packages natively on macOS
+- Run any macOS-specific build tools
+- Transparent file synchronization between container and host
+
+**Example usage in Claude:**
+```python
+from macos_builder import run_build, run_dev, execute_native_command
+
+# Use configured build commands (defined in .env)
+result = run_build()      # Runs NATIVE_BUILD_COMMAND
+result = run_dev()        # Runs NATIVE_DEV_COMMAND
+
+# Or execute arbitrary macOS commands
+result = execute_native_command("xcodebuild -version")
+```
+
+**Configure build commands per-project in `.env`:**
+```bash
+# In your-tauri-project/.env (project-specific)
+NATIVE_BUILD_COMMAND=npm run tauri build
+NATIVE_DEV_COMMAND=npm run tauri dev
+NATIVE_TEST_COMMAND=npm run test
+NATIVE_CLEAN_COMMAND=npm run clean
+NATIVE_BUILD_DIR=src-tauri
+NATIVE_PRE_BUILD=npm run build
+```
+
+**Each project gets its own configuration:**
+```bash
+cd tauri-project && claude-docker     # Uses Tauri commands
+cd react-native-project && claude-docker  # Uses RN commands  
+cd swift-project && claude-docker     # Uses Swift commands
+```
+
+**Then just tell Claude what you want:**
+- *"run the build"* → executes project's build command
+- *"start dev mode"* → executes project's dev command
+- *"run tests"* → executes project's test command
+- *"clean the project"* → executes project's clean command
+
+**Security considerations:**
+- Uses dedicated SSH keys (separate from your personal keys)
+- SSH connection restricted to `host.docker.internal`
+- Requires macOS Remote Login to be enabled
+- Easy to disable by setting `ENABLE_MACOS_BUILDS=false`
+
+### 6. Twilio Account (Optional - for SMS notifications)
 If you want SMS notifications when tasks complete:
 - Create free trial account: https://www.twilio.com/docs/usage/tutorials/how-to-use-your-free-trial-account
 - Get your Account SID and Auth Token from the Twilio Console
@@ -174,6 +239,11 @@ CONDA_EXTRA_DIRS="/path/to/envs /path/to/pkgs"
 
 # Optional - System packages
 SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
+
+# Optional - Native macOS Build Support
+ENABLE_MACOS_BUILDS=true
+MACOS_USERNAME=your_username
+HOST_WORKING_DIRECTORY=/Users/username/projects/myproject
 ```
 
 ⚠️ **Security Note**: Credentials are baked into the Docker image. Keep your image secure!
@@ -223,6 +293,39 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev"
 - Add Python modules for shared functionality across projects
 - Scripts are accessible as commands in both host terminal and Claude containers
 - All modifications persist across container sessions and rebuilds
+
+### 🔍 Git Repository & Worktree Detection
+- **Automatic Git Detection** - Detects git repositories and worktrees on startup
+- **Environment Variables** - Exports git information as environment variables for Claude to use:
+  - `CLAUDE_GIT_IS_REPO` - Whether current directory is in a git repository
+  - `CLAUDE_GIT_IS_WORKTREE` - Whether current directory is a git worktree
+  - `CLAUDE_GIT_ROOT_PATH` - Repository root path
+  - `CLAUDE_GIT_CURRENT_BRANCH` - Current branch name
+  - `CLAUDE_GIT_REMOTE_URL` - Remote repository URL
+  - `CLAUDE_GIT_COMMIT_HASH` - Current commit hash
+- **Enhanced Worktree Support** - Automatic dual mounting for seamless git operations:
+  - Main repository mounted at `/main-repo` (contains `.git` directory)
+  - Current worktree mounted at `/workspace` (working directory)
+  - Automatic path translation for proper git functionality
+- **Worktree-aware Configuration** - Automatic fallback from current worktree to main worktree for missing configuration files
+- **Safety Checks** - Worktree-aware git state validation before script execution
+
+### 🍎 Native macOS Build Support
+- **SSH-based Communication** - Secure container-to-host communication via `host.docker.internal`
+- **Native Build Tools** - Direct access to xcodebuild, swift build, make, and other macOS tools
+- **Custom Build Commands** - Define project-specific commands in `.env` for semantic usage
+- **Pre/Post Build Hooks** - Automatic execution of setup and cleanup commands
+- **Automatic Setup** - Guided SSH key generation and Remote Login configuration
+- **Transparent Integration** - Execute native commands as if running directly on macOS
+- **Security Isolation** - Dedicated SSH keys separate from personal credentials
+
+### ⚡ Custom Build Commands
+- **Project-Specific Configuration** - Define your build commands once in `.env`
+- **Semantic Interface** - Use natural language like "run the build" or "start dev mode"
+- **Multiple Command Types** - Support for build, dev, test, clean, install, release, lint, format
+- **Working Directory Control** - Specify subdirectories for build operations
+- **Build Hooks** - Automatic pre-build and post-build command execution
+- **CLI & Python API** - Access via command line or Python functions
 
 ### 🧠 Enhanced Prompt Engineering (`CLAUDE.md`)
 - **Execution Protocols** - Strict guidelines for simplicity, no error handling, surgical edits
@@ -340,6 +443,186 @@ SYSTEM_PACKAGES="libopenslide0 libgdal-dev libproj-dev libopencv-dev"
 ```
 
 **Note:** Adding system packages requires rebuilding the Docker image (`docker rmi claude-docker:latest`).
+
+## Custom Build Commands
+
+Claude-docker supports **per-project** build commands with automatic detection and multiple configuration methods. Each project can have its own build setup.
+
+### Configuration Methods
+
+**1. Project `.env` File (Recommended)**
+Create a `.env` file in each project directory:
+
+```bash
+# your-tauri-project/.env
+NATIVE_BUILD_COMMAND=npm run tauri build
+NATIVE_DEV_COMMAND=npm run tauri dev
+NATIVE_TEST_COMMAND=npm run test
+NATIVE_CLEAN_COMMAND=npm run clean
+NATIVE_BUILD_DIR=src-tauri
+NATIVE_PRE_BUILD=npm run build
+```
+
+**2. claude-build.json Configuration**
+```json
+{
+  "build": "npm run tauri build",
+  "dev": "npm run tauri dev", 
+  "test": "npm run test",
+  "buildDir": "src-tauri",
+  "preBuild": "npm run build"
+}
+```
+
+**3. package.json Integration**
+```json
+{
+  "scripts": {
+    "build": "tauri build",
+    "dev": "tauri dev"
+  },
+  "claude-docker": {
+    "build": "npm run build",
+    "dev": "npm run dev",
+    "buildDir": "src-tauri"
+  }
+}
+```
+
+**4. Auto-Detection**
+Commands are automatically inferred from:
+- Tauri projects (`src-tauri/` + `package.json`)
+- React Native (`ios/` + `package.json`)
+- Swift packages (`Package.swift`)
+- Xcode projects (`*.xcodeproj`)
+- Rust projects (`Cargo.toml`)
+- And more...
+
+### Usage
+
+**With Claude (Natural Language):**
+- *"run the build"* - Executes `NATIVE_BUILD_COMMAND`
+- *"start dev mode"* - Executes `NATIVE_DEV_COMMAND`
+- *"run tests"* - Executes `NATIVE_TEST_COMMAND`
+- *"clean the project"* - Executes `NATIVE_CLEAN_COMMAND`
+- *"install dependencies"* - Executes `NATIVE_INSTALL_COMMAND`
+
+**Python API:**
+```python
+from macos_builder import run_build, run_dev, run_test
+
+# Execute configured commands
+result = run_build()      # Runs with pre/post hooks
+result = run_dev()        # Starts development server
+result = run_test()       # Runs test suite
+```
+
+**Command Line:**
+```bash
+# Direct command execution
+python3 ~/scripts/macos_builder.py build
+python3 ~/scripts/macos_builder.py dev
+python3 ~/scripts/macos_builder.py test
+
+# List configured commands
+python3 ~/scripts/macos_builder.py list
+
+# Check status
+python3 ~/scripts/macos_builder.py status
+```
+
+### Multi-Project Workflow
+
+**Setup different projects:**
+```bash
+# Tauri project
+cd tauri-project
+echo "NATIVE_BUILD_COMMAND=npm run tauri build" > .env
+echo "NATIVE_DEV_COMMAND=npm run tauri dev" >> .env
+
+# React Native project  
+cd ../react-native-project
+echo "NATIVE_BUILD_COMMAND=npx react-native run-macos --mode Release" > .env
+echo "NATIVE_DEV_COMMAND=npx react-native run-macos" >> .env
+
+# Swift project
+cd ../swift-project
+echo "NATIVE_BUILD_COMMAND=swift build -c release" > .env
+echo "NATIVE_DEV_COMMAND=swift run" >> .env
+
+# Use auto-detection for other projects (no .env needed)
+cd ../go-project  # Auto-detects: go build, go run
+cd ../xcode-project  # Auto-detects: xcodebuild commands
+```
+
+**Usage:**
+```bash
+cd tauri-project && claude-docker       # Tauri commands available
+cd ../react-native-project && claude-docker  # RN commands available
+cd ../swift-project && claude-docker    # Swift commands available
+```
+
+### Git Worktree Configuration Support
+
+For projects using git worktrees, claude-docker provides intelligent configuration loading:
+
+**Configuration Priority (highest to lowest):**
+1. **Current worktree** configuration files (`.env`, `claude-build.json`, `package.json`)
+2. **Main worktree** configuration files (fallback when not found in current worktree)
+3. **Auto-detection** based on project structure
+
+**How it works:**
+- Configuration files aren't copied to git worktrees by default
+- Claude-docker automatically checks the main worktree for missing configuration
+- Current worktree settings override main worktree settings when both exist
+- This ensures consistent build commands across all worktrees while allowing per-worktree customization
+
+**Git Operations in Worktrees:**
+- Automatically detects git worktrees and mounts both main repository and current worktree
+- Fixes the common "fatal: not a git repository" error in containerized worktrees
+- Git commands (status, diff, commit, push, etc.) work seamlessly
+- No manual setup required - everything works out of the box
+
+**Example workflow:**
+```bash
+# Setup main worktree with build configuration
+cd main-project
+echo "NATIVE_BUILD_COMMAND=npm run tauri build" > .env
+echo "NATIVE_DEV_COMMAND=npm run tauri dev" >> .env
+
+# Create and use worktree - automatically inherits configuration
+git worktree add ../feature-branch feature-branch
+cd ../feature-branch
+claude-docker  # Uses main worktree's build commands
+
+# Override in specific worktree if needed
+echo "NATIVE_DEV_COMMAND=npm run tauri dev -- --debug" > .env
+claude-docker  # Now uses worktree-specific dev command, main worktree's build command
+```
+
+**Example Configurations:**
+
+**Tauri with Frontend Build:**
+```bash
+# tauri-project/.env
+NATIVE_BUILD_COMMAND=npm run tauri build
+NATIVE_DEV_COMMAND=npm run tauri dev
+NATIVE_BUILD_DIR=src-tauri
+NATIVE_PRE_BUILD=npm run build
+```
+
+**Complex Multi-step Build:**
+```json
+// claude-build.json
+{
+  "build": "make release",
+  "dev": "make dev",
+  "test": "make test",
+  "preBuild": "make clean && make deps",
+  "postBuild": "make sign && make notarize"
+}
+```
+
 ## How This Differs from Anthropic's DevContainer
 
 We provide a different approach than [Anthropic's official .devcontainer](https://github.com/anthropics/claude-code/tree/main/.devcontainer), optimized for autonomous task execution:
