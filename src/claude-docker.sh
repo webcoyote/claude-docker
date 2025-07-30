@@ -399,6 +399,33 @@ if [ "$WORKTREE_DETECTED" = "true" ]; then
     echo "  Current worktree mounted at: /workspace"
 fi
 
+# Cleanup function for host-side worktree restoration
+cleanup_host_worktree() {
+    if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git.backup" ]; then
+        echo "🧹 Restoring original git worktree file on host..."
+        mv "$CURRENT_DIR/.git.backup" "$CURRENT_DIR/.git"
+        echo "  ✓ Host git worktree restored"
+    fi
+}
+
+# Set up signal handling for cleanup
+trap 'echo "Received signal, cleaning up..."; cleanup_host_worktree; exit 0' SIGTERM SIGINT
+
+# Backup git file if this is a worktree (before Docker modifies it)
+if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git" ]; then
+    echo "📋 Backing up worktree .git file for cleanup..."
+    cp "$CURRENT_DIR/.git" "$CURRENT_DIR/.git.backup"
+fi
+
+# Rewrite .git file for container use (after backup, before Docker)
+if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git" ]; then
+    echo "🔧 Rewriting .git file for container paths..."
+    ORIGINAL_GITDIR=$(cat "$CURRENT_DIR/.git" | cut -d' ' -f2)
+    CONTAINER_GITDIR=$(echo "$ORIGINAL_GITDIR" | sed "s|$MAIN_REPO_PATH|/main-repo|")
+    echo "gitdir: $CONTAINER_GITDIR" > "$CURRENT_DIR/.git"
+    echo "  ✓ Git worktree configured for container use"
+fi
+
 # Run Claude Code in Docker
 echo "Starting Claude Code in Docker..."
 docker run -it --rm \
@@ -419,3 +446,8 @@ docker run -it --rm \
     --workdir /workspace \
     --name "claude-docker-$(basename "$CURRENT_DIR")-$$" \
     claude-docker:latest "${ARGS[@]}"
+
+# Clean up after Docker exits normally
+DOCKER_EXIT_CODE=$?
+cleanup_host_worktree
+exit $DOCKER_EXIT_CODE
