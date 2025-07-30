@@ -46,37 +46,111 @@ else
     echo "  To reset to template, delete this file and restart"
 fi
 
+# Git worktree cleanup variables
+ORIGINAL_GIT_FILE=""
+GIT_FILE_BACKUP=""
+
+# Cleanup function to restore original .git file
+cleanup_git_worktree() {
+    if [ -n "$ORIGINAL_GIT_FILE" ] && [ -f "$GIT_FILE_BACKUP" ]; then
+        echo "🧹 Restoring original .git file..."
+        cp "$GIT_FILE_BACKUP" "/workspace/.git"
+        rm -f "$GIT_FILE_BACKUP"
+        echo "  ✓ Original .git file restored"
+    elif [ -n "$ORIGINAL_GIT_FILE" ]; then
+        echo "🧹 Restoring original .git file content..."
+        echo "$ORIGINAL_GIT_FILE" > "/workspace/.git"
+        echo "  ✓ Original .git file restored"
+    fi
+}
+
+# Set up signal handlers for cleanup
+setup_cleanup_handlers() {
+    trap 'echo "Container shutting down..."; cleanup_git_worktree; exit 0' SIGTERM SIGINT EXIT
+}
+
 # Handle git worktree mounting scenario
+echo "🔍 DEBUG: Checking git worktree environment variables:"
+echo "  WORKTREE_DETECTED='$WORKTREE_DETECTED'"
+echo "  MAIN_REPO_PATH='$MAIN_REPO_PATH'"
+echo "  WORKTREE_PATH='$WORKTREE_PATH'"
+
 if [ "$WORKTREE_DETECTED" = "true" ]; then
     echo "✓ Git worktree environment detected"
     echo "  Main repository mounted at: $MAIN_REPO_PATH"
     echo "  Current worktree at: $WORKTREE_PATH"
     
     # Setup git worktree integration
+    echo "🔍 DEBUG: Checking if main repo git directory exists: $MAIN_REPO_PATH/.git"
     if [ -d "$MAIN_REPO_PATH/.git" ]; then
+        echo "  ✓ Main repo .git directory found"
         echo "  Setting up git worktree integration..."
         
+        # Store original .git file content for cleanup
+        echo "🔍 DEBUG: Checking if /workspace/.git file exists"
         if [ -f "/workspace/.git" ]; then
+            ORIGINAL_GIT_FILE=$(cat /workspace/.git)
+            echo "🔍 DEBUG: Original .git file content: '$ORIGINAL_GIT_FILE'"
+            # Create backup file
+            GIT_FILE_BACKUP="/tmp/git_file_backup_$$"
+            cp "/workspace/.git" "$GIT_FILE_BACKUP"
+            echo "  📋 Backed up original .git file for cleanup"
+        else
+            echo "🔍 DEBUG: No /workspace/.git file found"
+        fi
+        
+        # Setup cleanup handlers
+        setup_cleanup_handlers
+        
+        if [ -f "/workspace/.git" ]; then
+            echo "🔍 DEBUG: Processing existing .git file"
             # Existing .git file - update paths for container
             WORKTREE_GIT_DIR=$(cat /workspace/.git | cut -d' ' -f2)
+            echo "🔍 DEBUG: Extracted worktree git dir: '$WORKTREE_GIT_DIR'"
             # Extract host repo path and replace with container path
             HOST_REPO_BASE=$(echo "$WORKTREE_GIT_DIR" | sed 's|/.git/worktrees/.*||')
+            echo "🔍 DEBUG: Extracted host repo base: '$HOST_REPO_BASE'"
             CONTAINER_WORKTREE_GIT_DIR=$(echo "$WORKTREE_GIT_DIR" | sed "s|$HOST_REPO_BASE|/main-repo|")
+            echo "🔍 DEBUG: Calculated container worktree git dir: '$CONTAINER_WORKTREE_GIT_DIR'"
         elif [ -d "/main-repo/.git/worktrees" ]; then
+            echo "🔍 DEBUG: No .git file found, but worktrees directory exists"
             # Missing .git file - find and create it
             WORKTREE_NAME=$(ls /main-repo/.git/worktrees/ | head -n1)
+            echo "🔍 DEBUG: Found worktree name: '$WORKTREE_NAME'"
             if [ -n "$WORKTREE_NAME" ]; then
                 CONTAINER_WORKTREE_GIT_DIR="/main-repo/.git/worktrees/$WORKTREE_NAME"
                 echo "  Creating missing .git file for worktree: $WORKTREE_NAME"
+                echo "🔍 DEBUG: Set container worktree git dir to: '$CONTAINER_WORKTREE_GIT_DIR'"
             fi
+        else
+            echo "🔍 DEBUG: No .git file and no worktrees directory found"
         fi
         
         # Create or update the .git file
+        echo "🔍 DEBUG: Final container worktree git dir: '$CONTAINER_WORKTREE_GIT_DIR'"
+        echo "🔍 DEBUG: Checking if directory exists: '$CONTAINER_WORKTREE_GIT_DIR'"
         if [ -n "$CONTAINER_WORKTREE_GIT_DIR" ] && [ -d "$CONTAINER_WORKTREE_GIT_DIR" ]; then
+            echo "🔍 DEBUG: Writing new .git file with: 'gitdir: $CONTAINER_WORKTREE_GIT_DIR'"
             echo "gitdir: $CONTAINER_WORKTREE_GIT_DIR" > /workspace/.git
             echo "  ✓ Git worktree paths configured for container"
+            echo "  🔄 Original .git file will be restored on container exit"
+            
+            # Verify the file was written correctly
+            NEW_GIT_CONTENT=$(cat /workspace/.git)
+            echo "🔍 DEBUG: Verified new .git file content: '$NEW_GIT_CONTENT'"
+        else
+            echo "🔍 DEBUG: ❌ Cannot create .git file - directory check failed"
+            if [ -z "$CONTAINER_WORKTREE_GIT_DIR" ]; then
+                echo "🔍 DEBUG: CONTAINER_WORKTREE_GIT_DIR is empty"
+            else
+                echo "🔍 DEBUG: Directory '$CONTAINER_WORKTREE_GIT_DIR' does not exist"
+            fi
         fi
+    else
+        echo "🔍 DEBUG: ❌ Main repo .git directory not found at: $MAIN_REPO_PATH/.git"
     fi
+else
+    echo "🔍 DEBUG: ❌ WORKTREE_DETECTED is not 'true', skipping git worktree setup"
 fi
 
 # Detect and export git repository information

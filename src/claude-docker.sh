@@ -112,6 +112,12 @@ if [ ! -d "$CURRENT_DIR/.claude" ]; then
     echo "✓ Claude configuration created"
 fi
 
+# Copy .env file if it exists in main repo and not in current directory
+if [ -f "$PROJECT_ROOT/.env" ] && [ ! -f "$CURRENT_DIR/.env" ]; then
+    cp "$PROJECT_ROOT/.env" "$CURRENT_DIR/.env"
+    echo "✓ Copied .env file from main repository"
+fi
+
 # Check if .env exists in claude-docker directory for building
 ENV_FILE="$PROJECT_ROOT/.env"
 if [ -f "$ENV_FILE" ]; then
