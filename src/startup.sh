@@ -59,7 +59,9 @@ if [ "$WORKTREE_DETECTED" = "true" ]; then
         if [ -f "/workspace/.git" ]; then
             # Existing .git file - update paths for container
             WORKTREE_GIT_DIR=$(cat /workspace/.git | cut -d' ' -f2)
-            CONTAINER_WORKTREE_GIT_DIR=$(echo "$WORKTREE_GIT_DIR" | sed "s|$MAIN_REPO_PATH|/main-repo|g")
+            # Extract host repo path and replace with container path
+            HOST_REPO_BASE=$(echo "$WORKTREE_GIT_DIR" | sed 's|/.git/worktrees/.*||')
+            CONTAINER_WORKTREE_GIT_DIR=$(echo "$WORKTREE_GIT_DIR" | sed "s|$HOST_REPO_BASE|/main-repo|")
         elif [ -d "/main-repo/.git/worktrees" ]; then
             # Missing .git file - find and create it
             WORKTREE_NAME=$(ls /main-repo/.git/worktrees/ | head -n1)
