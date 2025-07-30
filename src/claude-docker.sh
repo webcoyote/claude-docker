@@ -56,14 +56,14 @@ detect_git_worktree() {
     local git_info_json
     local is_worktree
     local main_repo_path
-    
+
     # Use our git_utils.py to get repository information
     if command -v python3 >/dev/null 2>&1 && [ -f "$PROJECT_ROOT/scripts/git_utils.py" ]; then
         git_info_json=$(python3 "$PROJECT_ROOT/scripts/git_utils.py" json 2>/dev/null)
         if [ $? -eq 0 ] && [ -n "$git_info_json" ]; then
             # Parse JSON to check if this is a worktree
             is_worktree=$(echo "$git_info_json" | python3 -c "import sys, json; data=json.load(sys.stdin); print(data.get('is_worktree', False))" 2>/dev/null)
-            
+
             if [ "$is_worktree" = "True" ]; then
                 # Get main repository path from worktree info
                 main_repo_path=$(echo "$git_info_json" | python3 -c "
@@ -74,7 +74,7 @@ main_worktree = worktree_info.get('main_worktree')
 if main_worktree:
     print(main_worktree)
 " 2>/dev/null)
-                
+
                 if [ -n "$main_repo_path" ] && [ -d "$main_repo_path" ]; then
                     echo "WORKTREE_DETECTED=true"
                     echo "MAIN_REPO_PATH=$main_repo_path"
@@ -84,7 +84,7 @@ if main_worktree:
             fi
         fi
     fi
-    
+
     echo "WORKTREE_DETECTED=false"
     return 1
 }
@@ -107,15 +107,15 @@ fi
 if [ ! -d "$CURRENT_DIR/.claude" ]; then
     echo "Creating .claude directory for this project..."
     mkdir -p "$CURRENT_DIR/.claude"
-    
+
     # Copy template files
     cp "$PROJECT_ROOT/.claude/CLAUDE.md" "$CURRENT_DIR/.claude/"
-    
+
     # Create scratchpad.md if it doesn't exist
     if [ ! -f "$CURRENT_DIR/scratchpad.md" ]; then
         cp "$PROJECT_ROOT/.claude/scratchpad.md" "$CURRENT_DIR/"
     fi
-    
+
     echo "✓ Claude configuration created"
 fi
 
@@ -173,11 +173,11 @@ if [ "$NEED_REBUILD" = true ]; then
     if [ -f "$HOME/.claude.json" ]; then
         cp "$HOME/.claude.json" "$PROJECT_ROOT/.claude.json"
     fi
-    
+
     # Get git config from host
     GIT_USER_NAME=$(git config --global --get user.name 2>/dev/null || echo "")
     GIT_USER_EMAIL=$(git config --global --get user.email 2>/dev/null || echo "")
-    
+
     # Build docker command with conditional system packages and git config
     BUILD_ARGS="--build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g)"
     if [ -n "${GIT_USER_NAME:-}" ] && [ -n "${GIT_USER_EMAIL:-}" ]; then
@@ -187,9 +187,9 @@ if [ "$NEED_REBUILD" = true ]; then
         echo "✓ Building with additional system packages: $SYSTEM_PACKAGES"
         BUILD_ARGS="$BUILD_ARGS --build-arg SYSTEM_PACKAGES=\"$SYSTEM_PACKAGES\""
     fi
-    
+
     eval "'$DOCKER' build $NO_CACHE $BUILD_ARGS -t claude-docker:latest \"$PROJECT_ROOT\""
-    
+
     # Clean up copied auth files
     rm -f "$PROJECT_ROOT/.claude.json"
 fi
@@ -234,7 +234,7 @@ if [ ! -f "$SSH_KEY_PATH" ] || [ ! -f "$SSH_PUB_KEY_PATH" ]; then
     echo ""
 else
     echo "✓ SSH keys found for git operations"
-    
+
     # Create SSH config if it doesn't exist
     SSH_CONFIG_PATH="$HOME/.claude-docker/ssh/config"
     if [ ! -f "$SSH_CONFIG_PATH" ]; then
@@ -253,14 +253,14 @@ fi
 check_macos_ssh_connectivity() {
     if [ "$(uname)" = "Darwin" ]; then
         echo "Checking macOS SSH connectivity for native builds..."
-        
+
         # Check if Remote Login is enabled
         if sudo systemsetup -getremotelogin 2>/dev/null | grep -q "On"; then
             echo "✓ macOS Remote Login is enabled"
-            
+
             # Test host.docker.internal connectivity (will be available from container)
             echo "✓ Host SSH connectivity will be available via host.docker.internal"
-            
+
             # Check if host SSH keys exist
             HOST_SSH_KEY_PATH="$HOME/.claude-docker/ssh/host_keys/id_rsa"
             if [ ! -f "$HOST_SSH_KEY_PATH" ]; then
@@ -283,7 +283,7 @@ check_macos_ssh_connectivity() {
                 echo ""
             else
                 echo "✓ Host SSH keys found for native macOS builds"
-                
+
                 # Test the SSH connection
                 HOST_USER=$(whoami)
                 if ssh -i "$HOST_SSH_KEY_PATH" -o ConnectTimeout=5 -o BatchMode=yes "$HOST_USER@localhost" exit 2>/dev/null; then
@@ -406,6 +406,33 @@ if [ "$WORKTREE_DETECTED" = "true" ]; then
     echo "  Current worktree mounted at: /workspace"
 fi
 
+# Cleanup function for host-side worktree restoration
+cleanup_host_worktree() {
+    if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git.backup" ]; then
+        echo "🧹 Restoring original git worktree file on host..."
+        mv "$CURRENT_DIR/.git.backup" "$CURRENT_DIR/.git"
+        echo "  ✓ Host git worktree restored"
+    fi
+}
+
+# Set up signal handling for cleanup
+trap 'echo "Received signal, cleaning up..."; cleanup_host_worktree; exit 0' SIGTERM SIGINT
+
+# Backup git file if this is a worktree (before Docker modifies it)
+if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git" ]; then
+    echo "📋 Backing up worktree .git file for cleanup..."
+    cp "$CURRENT_DIR/.git" "$CURRENT_DIR/.git.backup"
+fi
+
+# Rewrite .git file for container use (after backup, before Docker)
+if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git" ]; then
+    echo "🔧 Rewriting .git file for container paths..."
+    ORIGINAL_GITDIR=$(cat "$CURRENT_DIR/.git" | cut -d' ' -f2)
+    CONTAINER_GITDIR=$(echo "$ORIGINAL_GITDIR" | sed "s|$MAIN_REPO_PATH|/main-repo|")
+    echo "gitdir: $CONTAINER_GITDIR" > "$CURRENT_DIR/.git"
+    echo "  ✓ Git worktree configured for container use"
+fi
+
 # Run Claude Code in Docker
 echo "Starting Claude Code in Docker..."
 "$DOCKER" run -it --rm \
@@ -426,3 +453,8 @@ echo "Starting Claude Code in Docker..."
     --workdir /workspace \
     --name "claude-docker-$(basename "$CURRENT_DIR")-$$" \
     claude-docker:latest "${ARGS[@]}"
+
+# Clean up after Docker exits normally
+DOCKER_EXIT_CODE=$?
+cleanup_host_worktree
+exit $DOCKER_EXIT_CODE
