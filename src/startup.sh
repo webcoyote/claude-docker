@@ -55,17 +55,25 @@ if [ "$WORKTREE_DETECTED" = "true" ]; then
     echo "  Main repository mounted at: $MAIN_REPO_PATH"
     echo "  Current worktree at: $WORKTREE_PATH"
     
-    # Create symlink to make git commands work properly in the worktree
-    if [ -d "$MAIN_REPO_PATH/.git" ] && [ -f "/workspace/.git" ]; then
+    # Setup git worktree integration
+    if [ -d "$MAIN_REPO_PATH/.git" ]; then
         echo "  Setting up git worktree integration..."
         
-        # Read the .git file to get the worktree path
-        WORKTREE_GIT_DIR=$(cat /workspace/.git | cut -d' ' -f2)
+        if [ -f "/workspace/.git" ]; then
+            # Existing .git file - update paths for container
+            WORKTREE_GIT_DIR=$(cat /workspace/.git | cut -d' ' -f2)
+            CONTAINER_WORKTREE_GIT_DIR=$(echo "$WORKTREE_GIT_DIR" | sed "s|$MAIN_REPO_PATH|/main-repo|g")
+        elif [ -d "/main-repo/.git/worktrees" ]; then
+            # Missing .git file - find and create it
+            WORKTREE_NAME=$(ls /main-repo/.git/worktrees/ | head -n1)
+            if [ -n "$WORKTREE_NAME" ]; then
+                CONTAINER_WORKTREE_GIT_DIR="/main-repo/.git/worktrees/$WORKTREE_NAME"
+                echo "  Creating missing .git file for worktree: $WORKTREE_NAME"
+            fi
+        fi
         
-        # Replace the host path with container path in the .git file
-        CONTAINER_WORKTREE_GIT_DIR=$(echo "$WORKTREE_GIT_DIR" | sed "s|$MAIN_REPO_PATH|/main-repo|g")
-        
-        if [ -d "/main-repo/.git/worktrees" ]; then
+        # Create or update the .git file
+        if [ -n "$CONTAINER_WORKTREE_GIT_DIR" ] && [ -d "$CONTAINER_WORKTREE_GIT_DIR" ]; then
             echo "gitdir: $CONTAINER_WORKTREE_GIT_DIR" > /workspace/.git
             echo "  ✓ Git worktree paths configured for container"
         fi
