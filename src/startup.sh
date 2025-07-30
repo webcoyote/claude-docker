@@ -46,6 +46,107 @@ else
     echo "  To reset to template, delete this file and restart"
 fi
 
+# Handle git worktree mounting scenario
+if [ "$WORKTREE_DETECTED" = "true" ]; then
+    echo "✓ Git worktree environment detected"
+    echo "  Main repository mounted at: $MAIN_REPO_PATH"
+    echo "  Current worktree at: $WORKTREE_PATH"
+    
+    # Create symlink to make git commands work properly in the worktree
+    if [ -d "$MAIN_REPO_PATH/.git" ] && [ -f "/workspace/.git" ]; then
+        echo "  Setting up git worktree integration..."
+        
+        # Read the .git file to get the worktree path
+        WORKTREE_GIT_DIR=$(cat /workspace/.git | cut -d' ' -f2)
+        
+        # Replace the host path with container path in the .git file
+        CONTAINER_WORKTREE_GIT_DIR=$(echo "$WORKTREE_GIT_DIR" | sed "s|$MAIN_REPO_PATH|/main-repo|g")
+        
+        if [ -d "/main-repo/.git/worktrees" ]; then
+            echo "gitdir: $CONTAINER_WORKTREE_GIT_DIR" > /workspace/.git
+            echo "  ✓ Git worktree paths configured for container"
+        fi
+    fi
+fi
+
+# Detect and export git repository information
+echo "Detecting git repository status..."
+if command -v python3 >/dev/null 2>&1 && [ -f "/home/claude-user/scripts/git_utils.py" ]; then
+    # Export git environment variables
+    eval $(python3 /home/claude-user/scripts/git_utils.py env)
+    
+    # Display git status information
+    if [ "$CLAUDE_GIT_IS_REPO" = "true" ]; then
+        echo "✓ Git repository detected"
+        echo "  Root: $CLAUDE_GIT_ROOT_PATH"
+        echo "  Branch: $CLAUDE_GIT_CURRENT_BRANCH"
+        
+        if [ "$CLAUDE_GIT_IS_WORKTREE" = "true" ]; then
+            echo "✓ Git worktree detected"
+            echo "  Main worktree: $CLAUDE_GIT_MAIN_WORKTREE"
+            echo "  Total worktrees: $CLAUDE_GIT_WORKTREE_COUNT"
+        fi
+        
+        if [ -n "$CLAUDE_GIT_REMOTE_URL" ]; then
+            echo "  Remote: $CLAUDE_GIT_REMOTE_URL"
+        fi
+        
+        # Test git functionality
+        echo "  Testing git operations..."
+        if git status >/dev/null 2>&1; then
+            echo "  ✓ Git commands working properly"
+        else
+            echo "  ⚠️  Git commands may have issues"
+        fi
+    else
+        echo "No git repository detected in current directory"
+    fi
+else
+    echo "Git detection unavailable - git_utils.py not found"
+fi
+
+# Check macOS native build availability and project configuration
+echo "Checking macOS native build support..."
+if [ "${ENABLE_MACOS_BUILDS:-false}" = "true" ]; then
+    if command -v python3 >/dev/null 2>&1 && [ -f "/home/claude-user/scripts/macos_builder.py" ]; then
+        # Test macOS build availability and load project configuration
+        BUILD_STATUS=$(python3 /home/claude-user/scripts/macos_builder.py status 2>/dev/null)
+        if echo "$BUILD_STATUS" | grep -q "Connection Available: True"; then
+            echo "✓ macOS native builds available"
+            echo "  SSH connection to host verified"
+            if [ -n "$MACOS_USERNAME" ]; then
+                echo "  Username: $MACOS_USERNAME"
+            fi
+            
+            # Show project type if detected
+            PROJECT_TYPE=$(echo "$BUILD_STATUS" | grep "Project Type:" | cut -d: -f2- | xargs)
+            if [ -n "$PROJECT_TYPE" ]; then
+                echo "  Project type: $PROJECT_TYPE"
+            fi
+            
+            # Show configured build commands
+            CONFIGURED_COMMANDS=$(echo "$BUILD_STATUS" | grep "Configured Commands:" | cut -d: -f2- | xargs)
+            if [ -n "$CONFIGURED_COMMANDS" ]; then
+                echo "  Available commands: $CONFIGURED_COMMANDS"
+                echo "  Usage: python3 ~/scripts/macos_builder.py [command]"
+                echo "  Examples: 'run the build', 'start dev mode', 'run tests'"
+            else
+                echo "  No build commands configured"
+                echo "  Create .env file or claude-build.json in project directory"
+                echo "  Or commands will be auto-detected from project structure"
+            fi
+        else
+            echo "⚠️  macOS native builds configured but not available"
+            echo "  SSH connection to host failed"
+            echo "  Run: python3 ~/scripts/macos_builder.py status (for details)"
+        fi
+    else
+        echo "⚠️  macOS native builds enabled but macos_builder.py not found"
+    fi
+else
+    echo "macOS native builds disabled (set ENABLE_MACOS_BUILDS=true to enable)"
+fi
+
 # Verify Twilio MCP configuration
 if [ -n "$TWILIO_ACCOUNT_SID" ] && [ -n "$TWILIO_AUTH_TOKEN" ]; then
     echo "✓ Twilio MCP server configured - SMS notifications enabled"

@@ -27,6 +27,8 @@ data/
 *.temp
 ~*
 
+# Serena and other tool directories
+.serena/
 
 # Environment file with credentials
 .env
