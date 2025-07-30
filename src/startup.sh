@@ -93,6 +93,7 @@ if [ "$WORKTREE_DETECTED" = "true" ]; then
             echo "🔍 DEBUG: Original .git file content: '$ORIGINAL_GIT_FILE'"
             # Create backup file
             GIT_FILE_BACKUP="/tmp/git_file_backup_$$"
+            export GIT_FILE_BACKUP
             cp "/workspace/.git" "$GIT_FILE_BACKUP"
             echo "  📋 Backed up original .git file for cleanup"
         else
