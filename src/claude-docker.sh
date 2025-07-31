@@ -118,6 +118,12 @@ if [ -f "$PROJECT_ROOT/.env" ] && [ ! -f "$CURRENT_DIR/.env" ]; then
     echo "✓ Copied .env file from main repository"
 fi
 
+# Copy .env from main worktree to current worktree if in worktree mode
+if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$MAIN_REPO_PATH/.env" ] && [ ! -f "$CURRENT_DIR/.env" ]; then
+    cp "$MAIN_REPO_PATH/.env" "$CURRENT_DIR/.env"
+    echo "✓ Copied .env file from main worktree"
+fi
+
 # Check if .env exists in claude-docker directory for building
 ENV_FILE="$PROJECT_ROOT/.env"
 if [ -f "$ENV_FILE" ]; then
@@ -187,9 +193,10 @@ if [ "$NEED_REBUILD" = true ]; then
     rm -f "$PROJECT_ROOT/.claude.json"
 fi
 
-# Ensure the claude-home and ssh directories exist
+# Ensure the claude-home, ssh, and git-backups directories exist
 mkdir -p "$HOME/.claude-docker/claude-home"
 mkdir -p "$HOME/.claude-docker/ssh"
+mkdir -p "$HOME/.claude-docker/git-backups"
 
 # Copy authentication files to persistent claude-home if they don't exist
 if [ -f "$HOME/.claude/.credentials.json" ] && [ ! -f "$HOME/.claude-docker/claude-home/.credentials.json" ]; then
@@ -399,11 +406,14 @@ if [ "$WORKTREE_DETECTED" = "true" ]; then
     echo "  Current worktree mounted at: /workspace"
 fi
 
+# Define backup file path for worktree .git file
+BACKUP_FILE="$HOME/.claude-docker/git-backups/.git.backup.$(basename "$CURRENT_DIR").$$"
+
 # Cleanup function for host-side worktree restoration
 cleanup_host_worktree() {
-    if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git.backup" ]; then
+    if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$BACKUP_FILE" ]; then
         echo "🧹 Restoring original git worktree file on host..."
-        mv "$CURRENT_DIR/.git.backup" "$CURRENT_DIR/.git"
+        mv "$BACKUP_FILE" "$CURRENT_DIR/.git"
         echo "  ✓ Host git worktree restored"
     fi
 }
@@ -414,7 +424,7 @@ trap 'echo "Received signal, cleaning up..."; cleanup_host_worktree; exit 0' SIG
 # Backup git file if this is a worktree (before Docker modifies it)
 if [ "$WORKTREE_DETECTED" = "true" ] && [ -f "$CURRENT_DIR/.git" ]; then
     echo "📋 Backing up worktree .git file for cleanup..."
-    cp "$CURRENT_DIR/.git" "$CURRENT_DIR/.git.backup"
+    cp "$CURRENT_DIR/.git" "$BACKUP_FILE"
 fi
 
 # Rewrite .git file for container use (after backup, before Docker)
