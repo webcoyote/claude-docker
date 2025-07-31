@@ -212,8 +212,8 @@ echo "   Modify files here to customize Claude's behavior across all projects"
 echo ""
 
 # Check SSH key setup
-SSH_KEY_PATH="$HOME/.claude-docker/ssh/id_rsa"
-SSH_PUB_KEY_PATH="$HOME/.claude-docker/ssh/id_rsa.pub"
+SSH_KEY_PATH="$HOME/.claude-docker/ssh/host_keys/id_rsa"
+SSH_PUB_KEY_PATH="$HOME/.claude-docker/ssh/host_keys/id_rsa.pub"
 
 if [ ! -f "$SSH_KEY_PATH" ] || [ ! -f "$SSH_PUB_KEY_PATH" ]; then
     echo ""
@@ -221,14 +221,14 @@ if [ ! -f "$SSH_KEY_PATH" ] || [ ! -f "$SSH_PUB_KEY_PATH" ]; then
     echo "   To enable git push/pull in Claude Docker:"
     echo ""
     echo "   1. Generate SSH key:"
-    echo "      ssh-keygen -t rsa -b 4096 -f ~/.claude-docker/ssh/id_rsa -N ''"
+    echo "      ssh-keygen -t rsa -b 4096 -f ~/.claude-docker/ssh/host_keys/id_rsa -N ''"
     echo ""
     echo "   2. Add public key to GitHub:"
-    echo "      cat ~/.claude-docker/ssh/id_rsa.pub"
+    echo "      cat ~/.claude-docker/ssh/host_keys/id_rsa.pub"
     echo "      # Copy output and add to: GitHub → Settings → SSH Keys"
     echo ""
     echo "   3. Test connection:"
-    echo "      ssh -T git@github.com -i ~/.claude-docker/ssh/id_rsa"
+    echo "      ssh -T git@github.com -i ~/.claude-docker/ssh/host_keys/id_rsa"
     echo ""
     echo "   Claude will continue without SSH keys (read-only git operations only)"
     echo ""
@@ -242,7 +242,7 @@ else
 Host github.com
     HostName github.com
     User git
-    IdentityFile ~/.ssh/id_rsa
+    IdentityFile ~/.ssh/host_keys/id_rsa
     IdentitiesOnly yes
 EOF
         echo "✓ SSH config created for GitHub"
@@ -286,10 +286,13 @@ check_macos_ssh_connectivity() {
                 
                 # Test the SSH connection
                 HOST_USER=$(whoami)
-                if ssh -i "$HOST_SSH_KEY_PATH" -o ConnectTimeout=5 -o BatchMode=yes "$HOST_USER@localhost" exit 2>/dev/null; then
+                echo "Testing SSH connection as user: $HOST_USER"
+                if ssh -i "$HOST_SSH_KEY_PATH" -o ConnectTimeout=15 -o BatchMode=yes "$HOST_USER@localhost" exit 2>/dev/null; then
                     echo "✓ SSH connection to macOS host verified"
                 else
                     echo "⚠️  SSH connection test failed - may need to add public key to authorized_keys"
+                    echo "   Username used: $HOST_USER"
+                    echo "   SSH key: $HOST_SSH_KEY_PATH"
                 fi
             fi
         else
