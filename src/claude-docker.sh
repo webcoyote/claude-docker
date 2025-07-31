@@ -198,6 +198,10 @@ mkdir -p "$HOME/.claude-docker/claude-home"
 mkdir -p "$HOME/.claude-docker/ssh"
 mkdir -p "$HOME/.claude-docker/git-backups"
 
+# Ensure host Claude directories exist for sharing
+mkdir -p "$HOME/.claude/commands"
+mkdir -p "$HOME/.claude/agents"
+
 # Copy authentication files to persistent claude-home if they don't exist
 if [ -f "$HOME/.claude/.credentials.json" ] && [ ! -f "$HOME/.claude-docker/claude-home/.credentials.json" ]; then
     echo "✓ Copying Claude authentication to persistent directory"
@@ -446,6 +450,8 @@ docker run -it --rm \
     -v "$CURRENT_DIR:/workspace" \
     $WORKTREE_MOUNT \
     -v "$HOME/.claude-docker/claude-home:/home/claude-user/.claude:rw" \
+    -v "$HOME/.claude/commands:/home/claude-user/.claude/commands:rw" \
+    -v "$HOME/.claude/agents:/home/claude-user/.claude/agents:rw" \
     -v "$HOME/.claude-docker/ssh:/home/claude-user/.ssh:rw" \
     -v "$HOME/.claude-docker/scripts:/home/claude-user/scripts:rw" \
     $HOST_SSH_MOUNT \
