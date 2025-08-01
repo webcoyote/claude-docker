@@ -5,7 +5,18 @@ THESE RULES ARE ABSOLUTE AND APPLY AT ALL TIMES.
 - **FIRST & ALWAYS**: IF project dir has existing code, we MUST index the codebase using Serena MCP.
   `uvx --from git+https://github.com/oraios/serena index-project`
 
-### 2. TASK & PLAN ADHERENCE
+### 2. TASK CLARIFICATION PROTOCOL
+- **MANDATORY CLARIFICATION**: If the user's prompt contains ANY vagueness or insufficient detail related to the goal being implied, you MUST ask clarifying questions before proceeding.
+- **WELL-DEFINED TASK REQUIREMENT**: The task must be completely well-defined before any implementation begins. If the user's prompt is not sufficiently detailed, you MUST ask questions to ensure clarity.
+- **CLARIFYING QUESTIONS MUST ADDRESS**:
+  - Specific requirements and constraints
+  - Expected inputs and outputs
+  - Performance criteria or success metrics
+  - Any assumptions that need to be validated
+  - Technical preferences or limitations
+- **NO PROCEEDING WITH VAGUE TASKS**: Do not attempt to implement or even plan a task that is not completely clear and well-defined.
+
+### 3. TASK & PLAN ADHERENCE
 WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
 - **NEVER SIMPLIFY THE GOAL**: DO NOT MODIFY, REDUCE, OR SIMPLIFY THE TASK TO MAKE IT ACHIEVABLE. IF THE TASK AS SPECIFIED IS IMPOSSIBLE, YOU MUST TERMINATE.
 - **EARLY TERMINATION** is ALWAYS preferable to a flawed or deviated implementation.
@@ -43,45 +54,8 @@ WHEN OUTSIDE PLAN MODE ADHERE TO THE FOLLOWING PRINCIPLES:
   DO NOT use any other method or binary for Python script execution within conda environments.
   DO NOT omit the `--live-stream` or `-u` flags under any circumstances.
 
-### 3C. PYTHON OUTPUT REPRODUCIBILITY
-
 - **ARGUMENT PARSING REQUIREMENT**:  
   All scripts MUST use the `argparse` module for command-line argument handling. This ensures consistent, robust, and self-documenting CLI interfaces for all scripts.
-
-- **MANDATORY OUTPUT DIRECTORY PROTOCOL**:  
-  Every PYTHON script that produces an output **MUST** output to a dedicated directory, never directly to a file.  
-  - If the script would otherwise output a single file (e.g., a CSV or TXT), it **MUST** be refactored to output a directory containing that file as well as all required reproducibility metadata.
-  - The output directory **MUST** contain:
-    1. The scripts output.
-    2. `timestamp.txt` — the date and time the script was called.
-    3. `git_commit_hash.txt` — the current git commit id.
-    4. Copies of all config files used for the run.
-    5. `reproduce.txt` — the exact command used to run the script, generated using the `create_reproduce_command` function from the shared `sys_utils` module.
-  - **Direct file outputs are strictly forbidden.** All outputs must be directories containing both the main result and the reproducibility files.
-
-- **GIT STATE ASSERTION**:  
-  Any PYTHON script that creates output **MUST** assert the following before running:
-  1. If the input file or directory does **not** contain the keywords `test` or `demo` in its name, the script **MUST NOT** run unless git state is clean.
-  2. Use the `check_git_state_clean` function from the shared `sys_utils` module to enforce this. If the check fails, the script must exit with an error.
-
-- **USAGE**:  
-  Assume the utility functions are available to be imported from `sys_utils`.  
-  **Import and use in your scripts as follows:**
-  ```python
-  from sys_utils import check_git_state_clean, create_reproduce_command
-  
-  # Example: Check git state before running assuming test or demo not in input.
-  is_clean, details = check_git_state_clean()
-  if not is_clean:
-      print("Git state is not clean:", details)
-      sys.exit(1)
-  
-  # Example: Create a reproduce.txt file after parsing args
-  create_reproduce_command(parser, output_file, dvc_file_path)
-  ```
-
-- **ENFORCEMENT**:  
-  Scripts must fail loudly and immediately if these requirements are not met.
 
 ### 4. GIT COMMIT & PUSH PROTOCOL
 - **COMMIT FREQUENTLY** after completing major steps (milestones).
