@@ -46,11 +46,11 @@ fi
 echo "Checking macOS native build support..."
 if [ "${ENABLE_MACOS_BUILDS:-false}" = "true" ]; then
     if command -v python3 >/dev/null 2>&1 && [ -f "/home/claude-user/scripts/macos_builder.py" ]; then
-        BUILD_STATUS=$(python3 /home/claude-user/scripts/macos_builder.py status 2>/dev/null)
+        BUILD_STATUS=$(python3 /home/claude-user/scripts/macos_builder.py status 2>/dev/null || true)
         if echo "$BUILD_STATUS" | grep -q "Connection Available: True"; then
             echo "✓ macOS native builds available"
-            PROJECT_TYPE=$(echo "$BUILD_STATUS" | grep "Project Type:" | cut -d: -f2- | xargs)
-            CONFIGURED_COMMANDS=$(echo "$BUILD_STATUS" | grep "Configured Commands:" | cut -d: -f2- | xargs)
+            PROJECT_TYPE=$(echo "$BUILD_STATUS" | grep "Project Type:" | cut -d: -f2- | xargs || true)
+            CONFIGURED_COMMANDS=$(echo "$BUILD_STATUS" | grep "Configured Commands:" | cut -d: -f2- | xargs || true)
             echo "  Project: $PROJECT_TYPE"
             echo "  Commands: $CONFIGURED_COMMANDS"
         else
