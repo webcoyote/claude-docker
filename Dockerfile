@@ -1,7 +1,13 @@
 # ABOUTME: Docker image for Claude Code with Twilio MCP server
 # ABOUTME: Provides autonomous Claude Code environment with SMS notifications
 
-FROM node:20-slim
+FROM node:24-slim
+
+# Fix 'Hash Sum Mismatch' on mac
+#   https://stackoverflow.com/a/76092743
+#   "BrokenProxy" not needed: https://askubuntu.com/a/1407865
+#   "NoCache" not needed: verified with empirical testing
+RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom
 
 # Install required system dependencies
 RUN apt-get update && apt-get install -y \
@@ -42,7 +48,10 @@ WORKDIR /app
 
 # Install Claude Code globally
 RUN npm install -g @anthropic-ai/claude-code
-RUN npm install -g @railway/cli
+
+# Removed due to error on OSX
+# npm error Error: Failed fetching the binary: Not Found
+# RUN npm install -g @railway/cli
 
 # Ensure npm global bin is in PATH
 ENV PATH="/usr/local/bin:${PATH}"
