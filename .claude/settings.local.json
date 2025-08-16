@@ -5,7 +5,12 @@
       "Bash(find:*)",
       "Bash(env)",
       "Bash(docker run:*)",
-      "Bash(TEST_VAR=\"hello_from_host\" docker run --rm alpine sh -c 'echo \"TEST_VAR=$TEST_VAR\"')"
+      "Bash(TEST_VAR=\"hello_from_host\" docker run --rm alpine sh -c 'echo \"TEST_VAR=$TEST_VAR\"')",
+      "mcp__serena__initial_instructions",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__list_dir",
+      "Bash(chmod:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": []
   }

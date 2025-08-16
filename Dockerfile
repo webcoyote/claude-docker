@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     python3 \
     build-essential \
     sudo \
+    openssh-client \
+    sshpass \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv (Astral) for Serena MCP (todo make this modular.)
@@ -62,7 +64,10 @@ RUN npm install -g @anthropic-ai/claude-code
 ENV PATH="/usr/local/bin:${PATH}"
 
 # Create directories for configuration
-RUN mkdir -p /app/.claude /home/claude-user/.claude
+RUN mkdir -p /app/.claude /home/claude-user/.claude /home/claude-user/scripts
+
+# Copy scripts
+COPY scripts/* /home/claude-user/scripts
 
 # Copy startup script
 COPY src/startup.sh /app/
@@ -73,7 +78,10 @@ COPY .claude /app/.claude
 
 # Copy .env file during build to bake credentials into the image
 # This enables one-time setup - no need for .env in project directories
-COPY .env /app/.env
+# Copy .env.sample as fallback
+COPY .env.example /app/.env
+# Copy actual .env if it exists (will overwrite the fallback)
+COPY .env* /app/
 
 # Copy CLAUDE.md template directly to final location
 COPY .claude/CLAUDE.md /home/claude-user/.claude/CLAUDE.md
