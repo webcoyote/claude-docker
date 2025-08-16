@@ -9,6 +9,11 @@ FROM node:24-slim
 #   "NoCache" not needed: verified with empirical testing
 RUN echo "Acquire::http::Pipeline-Depth 0;" > /etc/apt/apt.conf.d/99custom
 
+# delete default node user if exists
+# we will likely need his UID
+RUN deluser node || true
+RUN delgroup node || true
+
 # Install required system dependencies
 RUN apt-get update && apt-get install -y \
     git \
